@@ -23,9 +23,46 @@ const char *regs[] = {
   "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
 };
 
-void isa_reg_display() {
+void isa_reg_display() 
+{
+  Log("this is isa reg display");
+  printf("%s:0x%016lX\n", "pc", cpu.pc);
+  // int i, j;
+  for(int i = 0;i < 8;i++)
+  {
+    for(int j = 0;j < 4;j++)
+    {
+      int n = 4*i+j;
+      printf("%s(%d):0x%016lX \t", regs[n], n, cpu.gpr[n]);
+    }
+    printf("\n");
+  }
+  // printf("mtvec: 0x%016lX \t", cpu.mtvec);
+  // printf("mepc: 0x%016lX \t", cpu.mepc);
+  // printf("mstatus: 0x%016lX \t", cpu.mstatus);
+  // printf("mcause: 0x%016lX \t\n", cpu.mcause);
+  return;
 }
 
-word_t isa_reg_str2val(const char *s, bool *success) {
+word_t isa_reg_str2val(const char *s, bool *success) 
+{
+  int i;
+  for(i = 0; i < 32; i++)
+  {
+    if(strcmp(regs[i], s) == 0)
+    {
+      // printf("Find the reg:%s, the value is:%lu\n", s, cpu.gpr[i]);
+      *success = true;
+      return cpu.gpr[i];
+    }
+  }
+  if(strcmp("pc", s) == 0)
+  {
+    // printf("Find the reg:%s, the value is:%lu\n", s, cpu.pc);
+    *success = true;
+    return cpu.pc;
+  }
+  Log("Can't find the reg:%s", s);
+  *success = false;
   return 0;
 }

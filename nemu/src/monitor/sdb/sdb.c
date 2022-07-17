@@ -18,6 +18,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+#include <memory/paddr.h>
 
 static int is_batch_mode = false;
 
@@ -42,13 +43,82 @@ static char* rl_gets() {
   return line_read;
 }
 
+static int cmd_p(char *args) 
+{
+  bool *expr_flag = (bool*) malloc(sizeof(bool));
+  word_t expr_result = expr(args, expr_flag);
+  assert(*expr_flag);
+  free(expr_flag);
+  printf("The result is:%lu, hex format:0x%016lX\n", expr_result, expr_result);
+  return 0;
+}
+
 static int cmd_c(char *args) {
   cpu_exec(-1);
   return 0;
 }
 
+static int cmd_w(char *args) 
+{
+  new_wp(args);
+  return 0;
+}
 
-static int cmd_q(char *args) {
+static int cmd_x(char *args)
+{
+  const char *x_N = strtok(args, " ");
+  const char *x_EXPR = strtok(NULL, " ");
+
+  int byte_c = 0;
+  int byte4_c = 0;
+  int x_N_num;
+  word_t x_EXPR_num;
+  //Log("%s\n%s", x_N, x_EXPR);
+
+  sscanf(x_N, "%i", &x_N_num);
+  sscanf(x_EXPR, "%lX", &x_EXPR_num);
+  for(byte4_c = 0;byte4_c < x_N_num; byte4_c++)
+  {
+    printf("0x%016lx: ", x_EXPR_num);
+    for(byte_c=0; byte_c <= 3; byte_c++)
+    {
+      printf("%02lx ", vaddr_read(x_EXPR_num+byte_c, 1));
+    }
+    printf("\t");
+    for(byte_c=0; byte_c <= 3; byte_c++)
+    {
+      printf("\'%c\'", (char) vaddr_read(x_EXPR_num+byte_c, 1));
+    }
+    x_EXPR_num += 4;
+    printf("\n");
+  }
+  return 0;
+}
+
+static int cmd_info(char *args)
+{
+  const char *info_r = "r"; //print registers' value
+  const char *info_w = "w";
+
+  if(strcmp(args, info_r) == 0) isa_reg_display();
+  else if(strcmp(args, info_w) == 0) display_wp();
+  else printf("wrong parameter\n");
+  return 0;
+}
+
+static int cmd_si(char *args)
+{
+  //注意args为空的情况需要进行缺省设置
+  int si_steps = 0;
+  if(args == NULL) si_steps = 1;
+  else si_steps = atoi(args);
+  cpu_exec(si_steps);
+  return 0;
+}
+
+static int cmd_q(char *args) 
+{
+  nemu_state.state = NEMU_QUIT;
   return -1;
 }
 
@@ -62,6 +132,11 @@ static struct {
   { "help", "Display informations about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
+  { "si", "", cmd_si},
+  { "info", "", cmd_info},
+  { "x", "", cmd_x},
+  { "p", "", cmd_p},
+  { "w", "", cmd_w},
 
   /* TODO: Add more commands */
 
