@@ -18,16 +18,68 @@
 #include <difftest-def.h>
 #include <memory/paddr.h>
 
-void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
-  assert(0);
+struct npc_reg_struct 
+{
+  word_t gpr[32];
+  word_t pc;
+};
+
+void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) 
+{
+  if(direction == DIFFTEST_TO_REF)
+  {
+    int i = 0;
+    for(i = 0; i < n; i++)
+    {
+      vaddr_write(addr+i, 1, *((uint8_t*)buf+i));
+    }
+    for(i = 0; i < n; i++)
+    {
+      printf("%02lx ", vaddr_read(addr+i, 1));
+    }
+    printf("\n");
+  }
+  else if(direction == DIFFTEST_TO_DUT)
+  {
+    printf("NO IMPLENMATION.\n");
+    assert(0);
+  }
+  return;
 }
 
-void difftest_regcpy(void *dut, bool direction) {
-  assert(0);
+void difftest_regcpy(void *dut, bool direction) 
+{
+  // printf("difftest_regcpy!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+  if(direction == DIFFTEST_TO_REF)
+  {
+    printf("DIFFTEST_TO_REF\n");
+    struct npc_reg_struct* npc_regs = (struct npc_reg_struct*)dut;
+    // for(int i=0;i<32;i++)
+    // {
+    //   cpu.gpr[i] = npc_regs->gpr[i];
+    //   printf("nemu gpr[%d] = npc gpr[%d] = %lu\n", i, i, npc_regs->gpr[i]);
+    // }
+    cpu.pc = npc_regs->pc;
+    // printf("nemu pc = npc pc = %lx\n", npc_regs->pc);
+  }
+  else if(direction == DIFFTEST_TO_DUT)
+  {
+    struct npc_reg_struct* ref_regs = (struct npc_reg_struct*)dut;
+    for(int i=0;i<32;i++)
+    {
+      ref_regs->gpr[i] = cpu.gpr[i];
+    }
+    ref_regs->pc = cpu.pc;
+  }
+  return;
+  // assert(0);
 }
 
-void difftest_exec(uint64_t n) {
-  assert(0);
+void difftest_exec(uint64_t n) 
+{
+  cpu_exec(n);
+  // assert(0);
+  return;
 }
 
 void difftest_raise_intr(word_t NO) {

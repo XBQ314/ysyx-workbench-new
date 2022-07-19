@@ -24,11 +24,15 @@
  * You can modify this value as you want.
  */
 #define MAX_INST_TO_PRINT 10
+#define ITRACE_INS_NUM 20
 
 CPU_state cpu = {};
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
+
+IFDEF(CONFIG_ITRACE,static char inst_his[ITRACE_INS_NUM][128]);
+IFDEF(CONFIG_ITRACE,static int cur_ins = 0);
 
 void device_update();
 extern void check_wp();
@@ -36,11 +40,27 @@ extern void check_wp();
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) 
 {
 #ifdef CONFIG_ITRACE_COND
-  if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
+  if (ITRACE_COND) 
+  {
+    if(cur_ins > (ITRACE_INS_NUM-1)) cur_ins-=(ITRACE_INS_NUM-1);
+    sprintf(inst_his[cur_ins++], "%s", _this->logbuf);
+    log_write("%s\n", _this->logbuf);// 无论用不用am，这一行都是写入log.txt中
+  }
 #endif
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
   IFDEF(CONFIG_WATCHPOINT, check_wp());
+#if CONFIG_ITRACE
+    if (nemu_state.state != NEMU_RUNNING)
+    {
+      for(int i =0;i < ITRACE_INS_NUM;i++)
+      {
+        if(i == cur_ins-1) printf("--->");
+        else printf("    ");
+        printf("%s\n", inst_his[i]);
+      }
+    }
+#endif
 }
 
 static void exec_once(Decode *s, vaddr_t pc) {

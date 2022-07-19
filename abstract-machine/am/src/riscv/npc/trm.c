@@ -17,7 +17,10 @@ static const char mainargs[] = MAINARGS;
 void putch(char ch) {
 }
 
-void halt(int code) {
+void halt(int code) 
+{  
+  asm volatile("mv a0, %0; ebreak" : :"r"(code)); // ebreak需要自己实现；
+                                                  // nemu中的实现方法是，如果R(10) == 0，就返回goodtrap
   while (1);
 }
 
