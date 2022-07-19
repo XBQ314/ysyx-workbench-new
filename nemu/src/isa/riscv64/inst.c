@@ -22,23 +22,23 @@
 #define Mr vaddr_read
 #define Mw vaddr_write
 
-// static void setCSRs(word_t csr, word_t t)
-// {
-//   if(csr == 0x00){cpu.mstatus = t;}
-//   else if(csr == 0x41){cpu.mepc = t;}
-//   else if(csr == 0x42){cpu.mcause = t;}
-//   else if(csr == 0x05){cpu.mtvec = t;}
-//   else{printf("csr number:%ld\n", csr);assert(0);}
-// }
+static void setCSRs(word_t csr, word_t t)
+{
+  if(csr == 0x00){cpu.mstatus = t;}
+  else if(csr == 0x41){cpu.mepc = t;}
+  else if(csr == 0x42){cpu.mcause = t;}
+  else if(csr == 0x05){cpu.mtvec = t;}
+  else{printf("csr number:%ld\n", csr);assert(0);}
+}
 
-// static void getCSRs(word_t *t, word_t csr)
-// {
-//   if(csr == 0x00){*t = cpu.mstatus;}
-//   else if(csr == 0x41){*t = cpu.mepc;}
-//   else if(csr == 0x42){*t = cpu.mcause;}
-//   else if(csr == 0x05){*t = cpu.mtvec;}
-//   else{printf("csr number:%ld\n", csr);assert(0);}
-// }
+static void getCSRs(word_t *t, word_t csr)
+{
+  if(csr == 0x00){*t = cpu.mstatus;}
+  else if(csr == 0x41){*t = cpu.mepc;}
+  else if(csr == 0x42){*t = cpu.mcause;}
+  else if(csr == 0x05){*t = cpu.mtvec;}
+  else{printf("csr number:%ld\n", csr);assert(0);}
+}
 
 enum 
 {
@@ -83,7 +83,7 @@ static int decode_exec(Decode *s)
   word_t dest = 0, src1 = 0, src2 = 0;
   s->dnpc = s->snpc;
   word_t shamt = BITS(i, 25, 20);
-  // word_t csr = BITS(i, 27, 20);
+  word_t csr = BITS(i, 27, 20);
 
 #define INSTPAT_INST(s) ((s)->isa.inst.val)
 #define INSTPAT_MATCH(s, name, type, ... /* body */ ) { \
@@ -117,7 +117,7 @@ static int decode_exec(Decode *s)
   INSTPAT("0000000 ????? ????? 010 ????? 01100 11", slt    , R, if((long long) src1 < (long long) src2)R(dest)=1;else R(dest)=0;);
   INSTPAT("0000000 ????? ????? 011 ????? 01100 11", sltu   , R, if(src1 < src2)R(dest)=1;else R(dest)=0);
 
-  // INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , R, s->dnpc = cpu.mepc;);
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , R, s->dnpc = cpu.mepc;);
   
   
   //I-type
@@ -149,14 +149,14 @@ static int decode_exec(Decode *s)
   INSTPAT("??????? ????? ????? 100 ????? 00100 11", xori   , I, R(dest) = src1 ^ src2);
   INSTPAT("??????? ????? ????? 011 ????? 00100 11", sltiu  , I, if(src1 < src2)R(dest)=1;else R(dest)=0;);
 
-  // INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , I, word_t temp;
-  //                                                               getCSRs(&temp, csr);
-  //                                                               setCSRs(csr, (temp | src1));
-  //                                                               R(dest) = temp;);
-  // INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , I, word_t temp;
-  //                                                               getCSRs(&temp, csr);
-  //                                                               setCSRs(csr, src1);
-  //                                                               R(dest) = temp;);
+  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , I, word_t temp;
+                                                                getCSRs(&temp, csr);
+                                                                setCSRs(csr, (temp | src1));
+                                                                R(dest) = temp;);
+  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , I, word_t temp;
+                                                                getCSRs(&temp, csr);
+                                                                setCSRs(csr, src1);
+                                                                R(dest) = temp;);
   
 
   //S-type
@@ -186,7 +186,7 @@ static int decode_exec(Decode *s)
 
 
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
-  // INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, s->dnpc = isa_raise_intr(0x0b, s->pc)); //NO=11, 机器模式环境调用
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, s->dnpc = isa_raise_intr(0x0b, s->pc)); //NO=11, 机器模式环境调用
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
   INSTPAT_END();
 
