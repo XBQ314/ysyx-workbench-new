@@ -5,13 +5,29 @@ static Context* (*user_handler)(Event, Context*) = NULL;
 
 Context* __am_irq_handle(Context *c) 
 {
-  if (user_handler) {
+  if (user_handler) 
+  {
     Event ev = {0};
-    switch (c->mcause) {
+
+    switch (c->mcause)
+    {
+      case 0x0b: // 在确定了是ecall触发的异常之后，根据通用寄存器a7来进行事件的区分。
+        if(c->GPR1 == -1)
+        {
+          ev.event = EVENT_YIELD;
+          c->mepc += 4;
+          break;
+        }
+        else if(c->GPR1 >= 0 && c->GPR1 <= 19)
+        {
+          ev.event = EVENT_SYSCALL;
+          c->mepc += 4;
+          break;
+        }
       default: ev.event = EVENT_ERROR; break;
     }
 
-    c = user_handler(ev, c);
+    c = user_handler(ev, c); // 调用lite-nano中设定的do_event函数，实现时间处理并更改上下文
     assert(c != NULL);
   }
 

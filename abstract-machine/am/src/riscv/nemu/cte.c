@@ -25,8 +25,18 @@ Context* __am_irq_handle(Context *c)
     switch (c->mcause)
     {
       case 0x0b: // 在确定了是ecall触发的异常之后，根据通用寄存器a7来进行事件的区分。
-        if(c->GPR1 == -1){ev.event = EVENT_YIELD;break;}
-        else if(c->GPR1 >= 0 && c->GPR1 <= 19){ev.event = EVENT_SYSCALL;break;}
+        if(c->GPR1 == -1)
+        {
+          ev.event = EVENT_YIELD;
+          c->mepc += 4;
+          break;
+        }
+        else if(c->GPR1 >= 0 && c->GPR1 <= 19)
+        {
+          ev.event = EVENT_SYSCALL;
+          c->mepc += 4;
+          break;
+        }
       default: ev.event = EVENT_ERROR; break;
     }
 

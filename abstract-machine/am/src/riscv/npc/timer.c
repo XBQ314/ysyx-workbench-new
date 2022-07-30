@@ -1,13 +1,29 @@
 #include <am.h>
 
-void __am_timer_init() {
+
+static uint64_t boot_time = 0;
+
+static uint64_t read_time() 
+{
+  // uint32_t lo = *(volatile uint32_t *)0xa0000048;
+  // uint32_t hi = *(volatile uint32_t *)0xa000004c;
+  // uint64_t time = ((uint64_t)hi << 32) | lo;
+  uint64_t time = *(volatile uint64_t *)0xa0000048;
+  return time;
 }
 
-void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
-  uptime->us = 0;
+void __am_timer_init() 
+{
+  boot_time = read_time();
 }
 
-void __am_timer_rtc(AM_TIMER_RTC_T *rtc) {
+void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) 
+{
+  uptime->us = (read_time() - boot_time);
+}
+
+void __am_timer_rtc(AM_TIMER_RTC_T *rtc) 
+{
   rtc->second = 0;
   rtc->minute = 0;
   rtc->hour   = 0;

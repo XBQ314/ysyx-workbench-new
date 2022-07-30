@@ -52,19 +52,46 @@ void init_map() {
   p_space = io_space;
 }
 
-word_t map_read(paddr_t addr, int len, IOMap *map) {
+// word_t map_read(paddr_t addr, int len, IOMap *map) {
+//   assert(len >= 1 && len <= 8);
+//   check_bound(map, addr);
+//   paddr_t offset = addr - map->low;
+//   invoke_callback(map->callback, offset, len, false); // prepare data to read
+//   word_t ret = host_read(map->space + offset, len);
+//   return ret;
+// }
+
+// void map_write(paddr_t addr, int len, word_t data, IOMap *map) {
+//   assert(len >= 1 && len <= 8);
+//   check_bound(map, addr);
+//   paddr_t offset = addr - map->low;
+//   host_write(map->space + offset, len, data);
+//   invoke_callback(map->callback, offset, len, true);
+// }
+
+// 将地址addr映射到map所指示的目标空间并进行访问
+// 访问时可能触发相应的回调函数
+word_t map_read(paddr_t addr, int len, IOMap *map) 
+{
   assert(len >= 1 && len <= 8);
-  check_bound(map, addr);
-  paddr_t offset = addr - map->low;
-  invoke_callback(map->callback, offset, len, false); // prepare data to read
-  word_t ret = host_read(map->space + offset, len);
+  check_bound(map, addr); //检查这个要读的地址在不在这个设备的注册MMIO空间中
+  paddr_t offset = addr - map->low; //计算出要读的地址相对于这个设备注册的MMIO空间启始地址的偏移
+#if CONFIG_DTRACE
+  printf("Device: Read from %s\n", map->name);
+#endif
+  invoke_callback(map->callback, offset, len, false); //调用设备的处理函数handler，把要读的数据模拟出来写入MMIO空间中
+  word_t ret = host_read(map->space + offset, len); //根据数据真实存放的地址读出数据
   return ret;
 }
 
-void map_write(paddr_t addr, int len, word_t data, IOMap *map) {
+void map_write(paddr_t addr, int len, word_t data, IOMap *map) 
+{
   assert(len >= 1 && len <= 8);
   check_bound(map, addr);
   paddr_t offset = addr - map->low;
+#if CONFIG_DTRACE
+  printf("Device: Write to %s\n", map->name);
+#endif
   host_write(map->space + offset, len, data);
   invoke_callback(map->callback, offset, len, true);
 }

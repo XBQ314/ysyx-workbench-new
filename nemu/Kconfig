@@ -158,6 +158,12 @@ config DIFFTEST
 config WATCHPOINT
   bool "Enable watchpoint check"
 
+config MTRACE
+  bool "Enable memory trace"
+
+config DTRACE
+  bool "Enable device trace"
+
 config ETRACE
   bool "Enable exception trace"
 

@@ -33,6 +33,34 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc)
     printf("difftest pc error.dut pc = %lx, ref pc = %lx.\n", cpu.pc, ref_r->pc);
     return false;
   }
+  
+  // if(ref_r->mstatus != cpu.mstatus)
+  // {
+  //   printf("difftest mstatus error!\n");
+  //   printf("mstatus ref = 0x%016lX, dut = 0x%016lX.\n", ref_r->mstatus, cpu.mstatus);
+  //   printf("mtvec   ref = 0x%016lX, dut = 0x%016lX.\n", ref_r->mtvec, cpu.mtvec);
+  //   printf("mepc    ref = 0x%016lX, dut = 0x%016lX.\n", ref_r->mepc, cpu.mepc);
+  //   printf("mcause  ref = 0x%016lX, dut = 0x%016lX.\n", ref_r->mcause, cpu.mcause);
+  //   return false;
+  // }
+  // if(ref_r->mtvec != cpu.mtvec)  
+  // {
+  //   printf("difftest mtvec error! ");
+  //   printf("ref = 0x%016lX, dut = 0x%016lX.\n", ref_r->mtvec, cpu.mtvec);
+  //   // return false;
+  // }
+  // if(ref_r->mepc != cpu.mepc)
+  // {
+  //   printf("difftest mepc error! ");
+  //   printf("ref = 0x%016lX, dut = 0x%016lX.\n", ref_r->mepc, cpu.mepc);
+  //   // return false;
+  // }
+  // if(ref_r->mcause != cpu.mcause)
+  // {
+  //   printf("difftest mcause error! ");
+  //   printf("ref = 0x%016lX, dut = 0x%016lX.\n", ref_r->mcause, cpu.mcause);
+  //   // return false;
+  // }
   return true;
 }
 

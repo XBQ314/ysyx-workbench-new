@@ -22,6 +22,7 @@ struct npc_reg_struct
 {
   word_t gpr[32];
   word_t pc;
+  word_t mstatus, mepc, mcause, mtvec;
 };
 
 void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) 
@@ -33,11 +34,11 @@ void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction)
     {
       vaddr_write(addr+i, 1, *((uint8_t*)buf+i));
     }
-    for(i = 0; i < n; i++)
-    {
-      printf("%02lx ", vaddr_read(addr+i, 1));
-    }
-    printf("\n");
+    // for(i = 0; i < n; i++)
+    // {
+    //   printf("%02lx ", vaddr_read(addr+i, 1));
+    // }
+    // printf("\n");
   }
   else if(direction == DIFFTEST_TO_DUT)
   {
@@ -52,14 +53,18 @@ void difftest_regcpy(void *dut, bool direction)
   // printf("difftest_regcpy!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
   if(direction == DIFFTEST_TO_REF)
   {
-    printf("DIFFTEST_TO_REF\n");
+    // printf("DIFFTEST_TO_REF\n");
     struct npc_reg_struct* npc_regs = (struct npc_reg_struct*)dut;
-    // for(int i=0;i<32;i++)
-    // {
-    //   cpu.gpr[i] = npc_regs->gpr[i];
-    //   printf("nemu gpr[%d] = npc gpr[%d] = %lu\n", i, i, npc_regs->gpr[i]);
-    // }
+    for(int i=0;i<32;i++)
+    {
+      cpu.gpr[i] = npc_regs->gpr[i];
+      // printf("nemu gpr[%d] = npc gpr[%d] = %lu\n", i, i, npc_regs->gpr[i]);
+    }
     cpu.pc = npc_regs->pc;
+    cpu.mstatus = npc_regs->mstatus;
+    cpu.mepc = npc_regs->mepc;
+    cpu.mcause = npc_regs->mcause;
+    cpu.mtvec = npc_regs->mtvec;
     // printf("nemu pc = npc pc = %lx\n", npc_regs->pc);
   }
   else if(direction == DIFFTEST_TO_DUT)
@@ -70,6 +75,10 @@ void difftest_regcpy(void *dut, bool direction)
       ref_regs->gpr[i] = cpu.gpr[i];
     }
     ref_regs->pc = cpu.pc;
+    ref_regs->mstatus = cpu.mstatus;
+    ref_regs->mepc    = cpu.mepc;
+    ref_regs->mcause  = cpu.mcause;
+    ref_regs->mtvec   = cpu.mtvec;
   }
   return;
   // assert(0);
@@ -82,11 +91,13 @@ void difftest_exec(uint64_t n)
   return;
 }
 
-void difftest_raise_intr(word_t NO) {
+void difftest_raise_intr(word_t NO) 
+{
   assert(0);
 }
 
-void difftest_init(int port) {
+void difftest_init(int port) 
+{
   /* Perform ISA dependent initialization. */
   init_isa();
 }

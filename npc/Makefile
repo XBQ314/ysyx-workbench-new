@@ -29,14 +29,13 @@ $(SRC_AUTO_BIND): $(NXDC_FILES)
 
 # 源文件
 MODULENAME = RV64Top
-# MODULENAME = RegisterFiles
 TOPNAME = FlyingLed
 VSRCS_SIM += $(shell find $(abspath ./build/chisel_dir) -name "*.v")
 VSRCS_NVBOARD += $(VSRCS_SIM)
 CSRCS_SIM += $(shell find $(abspath ./playground/test/src/csrc) -name "tb_RV64Top.cpp")
-# CSRCS_SIM += $(shell find $(abspath ./playground/test/src/csrc) -name "tb_RegisterFiles.cpp")
 CSRCS_SIM += $(shell find $(abspath ./playground/test/src/csrc/memory) -name "*.cpp")
 CSRCS_SIM += $(shell find $(abspath ./playground/test/src/csrc/monitor) -name "*.cpp")
+CSRCS_SIM += $(shell find $(abspath ./playground/test/src/csrc/device) -name "*.cpp")
 CSRCS_SIM += $(shell find $(abspath ./playground/test/src/csrc/cpu) -name "*.cpp")
 CSRCS_SIM += $(shell find $(abspath ./playground/test/src/csrc/cpu/difftest) -name "*.cpp")
 CSRCS_SIM += $(shell find $(abspath ./playground/test/src/csrc/utils) -name "*.cpp")
