@@ -12,5 +12,5 @@ extern void (*difftest_init)();
 void init_npc_difftest(long img_size);
 void difftest_check(struct npc_reg_struct* nemu_regs);
 
-extern bool access_device;
+extern bool mmio_flag;
 #endif

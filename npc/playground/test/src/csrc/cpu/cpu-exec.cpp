@@ -21,6 +21,9 @@ VRV64Top* top;
 
 extern NPCState npc_state;
 extern uint64_t NPC_PC;
+bool skip_difftest = false;
+uint64_t skipdiff_pc = 0;
+
 void step_and_dump_wave()
 {
     top->eval();
@@ -63,15 +66,25 @@ static void trace_and_difftest()
 #if CONFIG_DIFFTEST
     // PC等于零说明是flush出的指令，difftest
     // PC等于0x80000000说明是第一条指令，也不difftest，不然NPC会比NEMU慢一拍
-    if(NPC_PC != 0 && NPC_PC != 0x80000000)
+    if(mmio_flag == true)
     {
-        if(access_device = true)
+        skipdiff_pc = top->io_mem_pc; // 记录需要让nemu跳过执行的pc
+        // printf("skipdiff_pc:0x%lx\n", skipdiff_pc);
+        mmio_flag = false;
+    }
+
+    if(NPC_PC != 0 && NPC_PC != 0x80000000 && top->io_enMEM2WB)
+    {
+        // if(top->io_skip_diff)
+        if(skip_difftest == true)
         {
+            // printf("diffNOTcheck! \t");
             difftest_regcpy(&npc_regs, 1);
-            access_device = false;
+            skip_difftest = false;
         }
         else
         {
+            // printf("diffcheck!\n");
             difftest_exec(1);
             struct npc_reg_struct nemu_ref_regs;
             difftest_regcpy(&nemu_ref_regs, 0); // 这句话获取了nemu模拟器的状态，并赋值给nemu_ref_regs
@@ -107,7 +120,7 @@ static void exec_once()
     NPC_PC = top->io_pc;
     // top->io_inst = get_inst(NPC_PC);
     single_cycle();
-    NPC_PC = top->io_pc; // pc point to next inst
+    NPC_PC = top->io_pc;
     update_npc_regs(); // 让结构体中的regs保持更新
     return;
 }
@@ -116,8 +129,19 @@ static void execute(uint64_t n)
 {
     for(;n > 0; n--)
     {
+        // struct npc_reg_struct nemu_ref_regs;
+        // difftest_regcpy(&nemu_ref_regs, 0);
+        // printf("before npc_ex");
+        // printf("NPC pc:0x%lx, NEMU PC:0x%lx\n", NPC_PC, nemu_ref_regs.pc);
+        // printf("io_enMEM2WB:%d\n", top->io_enMEM2WB);
         exec_once();
+        // difftest_regcpy(&nemu_ref_regs, 0);
+        // printf("before diff");
+        // printf("NPC pc:0x%lx, NEMU PC:0x%lx\n", NPC_PC, nemu_ref_regs.pc);
+        // printf("io_enMEM2WB:%d ", top->io_enMEM2WB);
         trace_and_difftest();
+        // NPC_PC等于skipdiff_pc则说明在这个阶段，NPC和nemu都刚执行过了需要跳过的指令的上一条，所以可以让下一次nemu跳过difftest，直接拷贝NPC执行了之后的结果
+        if(NPC_PC == skipdiff_pc) skip_difftest = true; 
         if(top->io_inst == 0x100073) // ebreak
         {
             npc_state.state = NPC_END;

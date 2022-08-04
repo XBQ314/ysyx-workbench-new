@@ -68,6 +68,9 @@ class RV64Top extends Module
         val pc = Output(UInt(64.W))
         val inst = Output(UInt(32.W))
 
+        val mem_pc = Output(UInt(64.W))
+        val enMEM2WB = Output(Bool())
+        // val skip_diff = Output(UInt(1.W))
         // val alu_out = Output(UInt(64.W))
     })
     val IFU0 = Module(new IFU())
@@ -82,18 +85,20 @@ class RV64Top extends Module
     val MEM2WB0 = Module(new MEM2WB())
     val CTRL0 = Module(new CTRL())
     val CSR0 = Module(new CSR())
+    val CLINT0 = Module(new CLINT())
 
     //IF and ID
     // IFU0.io.regfile_out1 := RegisterFiles0.io.regfile_out1
     // IFU0.io.IFUctrl      := IDU0.io.IFUctrl
     // IFU0.io.ALUout_data  := ALU0.io.ALUout_data(0)
     // IFU0.io.imm          := IDU0.io.imm
-    IFU0.io.jump_flag := IDU0.io.jump_flag || ALU0.io.jump_flag
-    // IFU0.io.pc_next   := Mux(MEM2WB0.io.WBecall_flag, CSR0.io.mtvec_out,
+    IFU0.io.jump_flag := IDU0.io.jump_flag || ALU0.io.jump_flag || CLINT0.io.int_jump_flag
+    // IFU0.io.pc_next   := Mux(MEM2WB0.io.WBclint_enw, CSR0.io.mtvec_out,
     //                      Mux(ALU0.io.jump_flag, ALU0.io.pc_next, 
     //                      Mux(IDU0.io.jump_flag, IDU0.io.pc_next, 0.U))) // check the priority, later is higher
     IFU0.io.pc_next   := Mux(ALU0.io.jump_flag, ALU0.io.pc_next, 
-                         Mux(IDU0.io.jump_flag, IDU0.io.pc_next, 0.U))
+                         Mux(IDU0.io.jump_flag, IDU0.io.pc_next, 
+                         Mux(CLINT0.io.int_jump_flag, CLINT0.io.int_jump_add, 0.U)))
                          // 存在数据冒险的风险，没有解决
     IFU0.io.enIFU     := !CTRL0.io.stall_ifu
     IFU_DPI0.io.pc    := IFU0.io.pc
@@ -115,6 +120,7 @@ class RV64Top extends Module
     ID2EX0.io.flush     := CTRL0.io.flush_id2ex
 
     ID2EX0.io.IDimm         := IDU0.io.imm
+    ID2EX0.io.IDzimm        := IDU0.io.zimm
     ID2EX0.io.IDshamt       := IDU0.io.shamt
     ID2EX0.io.IDALUctrl     := IDU0.io.ALUctrl
     ID2EX0.io.IDIFUctrl     := IDU0.io.IFUctrl
@@ -143,20 +149,28 @@ class RV64Top extends Module
                                RegisterFiles0.io.regfile_out2)))
     ID2EX0.io.IDcsr_rd      := IDU0.io.csridx
     ID2EX0.io.IDcsrout      := CSR0.io.csr_out
-    ID2EX0.io.IDecall_flag  := IDU0.io.ecall_flag
+    ID2EX0.io.IDclint_enw   := CLINT0.io.csr_enw
+    ID2EX0.io.IDclint_mstatus:= CLINT0.io.mstatus_out
+    ID2EX0.io.IDclint_mepc  := CLINT0.io.mepc_out
+    ID2EX0.io.IDclint_mcause:= CLINT0.io.mcause_out
+    ID2EX0.io.IDmul_flag    := IDU0.io.mul_flag
     ID2EX0.io.IDBtype_flag  := IDU0.io.Btype_flag
     ID2EX0.io.IDLoad_flag   := IDU0.io.Load_flag
     ID2EX0.io.IDpc          := IF2ID0.io.IDpc
     ID2EX0.io.IDinst        := IF2ID0.io.IDinst
 
+    ALU0.io.clock        := clock
+    ALU0.io.reset        := reset
     ALU0.io.regfile_out1 := ID2EX0.io.EXregout1
     ALU0.io.regfile_out2 := ID2EX0.io.EXregout2
     ALU0.io.csr_out      := ID2EX0.io.EXcsrout
     ALU0.io.csr_enw      := ID2EX0.io.EXcsr_enw
     ALU0.io.imm          := ID2EX0.io.EXimm
+    ALU0.io.zimm         := ID2EX0.io.EXzimm
     ALU0.io.shamt        := ID2EX0.io.EXshamt
     ALU0.io.pc           := ID2EX0.io.EXpc
     ALU0.io.ALUctrl      := ID2EX0.io.EXALUctrl
+    ALU0.io.mul_flag     := ID2EX0.io.EXmul_flag
     ALU0.io.Btype_flag   := ID2EX0.io.EXBtype_flag
 
     RegisterFiles0.io.clock     := clock
@@ -167,6 +181,15 @@ class RV64Top extends Module
     CSR0.io.clock     := clock
     CSR0.io.reset     := reset
     CSR0.io.read_idx  := IDU0.io.csridx
+
+    CLINT0.io.inst          := IF2ID0.io.IDinst
+    CLINT0.io.pc            := IF2ID0.io.IDpc
+    CLINT0.io.global_int_en := CSR0.io.global_int_en
+    CLINT0.io.int_flag      := false.B
+    CLINT0.io.mstatus_in    := CSR0.io.mstatus_out
+    CLINT0.io.mepc_in       := CSR0.io.mepc_out
+    CLINT0.io.mtvec_in      := CSR0.io.mtvec_out
+
     //EX and MEM
     EX2MEM0.io.enEX2MEM   := !CTRL0.io.stall_ex2mem
     EX2MEM0.io.flush      := CTRL0.io.flush_ex2mem
@@ -182,7 +205,10 @@ class RV64Top extends Module
     EX2MEM0.io.EXwrb2reg  := Mux(ID2EX0.io.EXcsr_enw === 0.U, ALU0.io.ALUout_data, ID2EX0.io.EXcsrout)
     EX2MEM0.io.EXcsr_rd   := ID2EX0.io.EXcsr_rd
     EX2MEM0.io.EXwrb2csr  := ALU0.io.ALUout_data
-    EX2MEM0.io.EXecall_flag:=ID2EX0.io.EXecall_flag
+    EX2MEM0.io.EXclint_enw:=ID2EX0.io.EXclint_enw
+    EX2MEM0.io.EXclint_mstatus:= ID2EX0.io.EXclint_mstatus
+    EX2MEM0.io.EXclint_mepc  :=  ID2EX0.io.EXclint_mepc  
+    EX2MEM0.io.EXclint_mcause:=  ID2EX0.io.EXclint_mcause
     EX2MEM0.io.EXLoad_flag:= ID2EX0.io.EXLoad_flag
     EX2MEM0.io.EXpc       := ID2EX0.io.EXpc
     EX2MEM0.io.EXinst     := ID2EX0.io.EXinst
@@ -205,22 +231,30 @@ class RV64Top extends Module
     MEM2WB0.io.MEMwrb2csr  := EX2MEM0.io.MEMwrb2csr
     MEM2WB0.io.MEMmemout   := MEM0.io.rdata
     MEM2WB0.io.MEMLOADctrl := EX2MEM0.io.MEMLOADctrl
-    MEM2WB0.io.MEMecall_flag:=EX2MEM0.io.MEMecall_flag
+    MEM2WB0.io.MEMwaddr    := EX2MEM0.io.MEMwaddr
+    MEM2WB0.io.MEMclint_enw:= EX2MEM0.io.MEMclint_enw
+    MEM2WB0.io.MEMclint_mstatus:= EX2MEM0.io.MEMclint_mstatus
+    MEM2WB0.io.MEMclint_mepc  :=  EX2MEM0.io.MEMclint_mepc  
+    MEM2WB0.io.MEMclint_mcause:=  EX2MEM0.io.MEMclint_mcause
     MEM2WB0.io.MEMLoad_flag:= EX2MEM0.io.MEMLoad_flag
     MEM2WB0.io.MEMpc       := EX2MEM0.io.MEMpc
     MEM2WB0.io.MEMinst     := EX2MEM0.io.MEMinst
 
     RegisterFiles0.io.write_idx := MEM2WB0.io.WBrd
-    RegisterFiles0.io.enw       := MEM2WB0.io.WBenw
+    //注意Reg的写回信号要加入流水线是否暂停的判断，否则会导致difftest错误
+    RegisterFiles0.io.enw       := !CTRL0.io.stall_mem2wb && (MEM2WB0.io.WBenw === 1.U)
     RegisterFiles0.io.in_data   := MEM2WB0.io.WBwrb2reg
     
     CSR0.io.write_idx := MEM2WB0.io.WBcsr_rd
     CSR0.io.enw     := MEM2WB0.io.WBcsr_enw
     CSR0.io.in_data := MEM2WB0.io.WBwrb2csr
 
-    CSR0.io.ecall_flag   := MEM2WB0.io.WBecall_flag
-    CSR0.io.ecall_mepc   := MEM2WB0.io.WBpc
-    CSR0.io.ecall_mcause := "hb".U
+    CSR0.io.clint_enw   := MEM2WB0.io.WBclint_enw
+    CSR0.io.mstatus_in  := MEM2WB0.io.WBclint_mstatus
+    CSR0.io.mepc_in     := MEM2WB0.io.WBclint_mepc
+    CSR0.io.mcause_in   := MEM2WB0.io.WBclint_mcause
+    // CSR0.io.ecall_mepc   := MEM2WB0.io.WBpc
+    // CSR0.io.ecall_mcause := "hb".U
     
     //CTRL
     CTRL0.io.id_rs1         := IDU0.io.rs1
@@ -231,12 +265,15 @@ class RV64Top extends Module
     CTRL0.io.mem_enw        := EX2MEM0.io.MEMenw
     CTRL0.io.wb_rd          := MEM2WB0.io.WBrd
     CTRL0.io.wb_enw         := MEM2WB0.io.WBenw
-    CTRL0.io.flushreq_id    := IDU0.io.flush_req
+    CTRL0.io.flushreq_id    := IDU0.io.flush_req || CLINT0.io.int_jump_flag
     CTRL0.io.flushreq_ex    := ALU0.io.flush_req
-    CTRL0.io.flushreq_ecall := MEM2WB0.io.WBecall_flag
     CTRL0.io.loadflag_ex    := ID2EX0.io.EXLoad_flag
+    CTRL0.io.mulstall_req   := ALU0.io.mulstall_req
 
     //top input
-    io.pc   := MEM2WB0.io.WBpc
-    io.inst := MEM2WB0.io.WBinst
+    io.pc       := MEM2WB0.io.WBpc
+    io.inst     := MEM2WB0.io.WBinst
+    io.mem_pc   := EX2MEM0.io.MEMpc
+    io.enMEM2WB := MEM2WB0.io.enMEM2WB
+    // io.skip_diff := MEM2WB0.io.WBLoad_flag && (RegNext(EX2MEM0.io.MEMraddr) === "ha0000048".U(64.W))
 }

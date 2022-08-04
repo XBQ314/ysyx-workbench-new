@@ -99,9 +99,11 @@ static int cmd_info(char *args)
 {
   const char *info_r = "r"; //print registers' value
   const char *info_w = "w";
+  const char *info_csr = "csr";
 
   if(strcmp(args, info_r) == 0) isa_reg_display();
   else if(strcmp(args, info_w) == 0) display_wp();
+  else if (strcmp(args, info_csr) == 0) isa_csr_display();
   else printf("wrong parameter\n");
   return 0;
 }

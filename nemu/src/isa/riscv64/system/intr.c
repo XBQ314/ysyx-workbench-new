@@ -22,6 +22,11 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc)
    */
   cpu.mepc = epc;
   cpu.mcause = NO;
+
+  // 将MIE(3)保存到MPIE(7)位，然后关闭MIE
+  uint64_t tmp = cpu.mstatus;
+  cpu.mstatus = (BITS(tmp, 63, 8) << 8) | (BITS(tmp, 3, 3) << 7) | BITS(tmp, 6, 0);
+  cpu.mstatus = cpu.mstatus & (~(1 << 3));
   IFDEF(CONFIG_ETRACE,printf("ETRACE. Call exception. MEPC=0x%016lX, MCAUSE=%ld, a7=%ld;\n", epc, NO, cpu.gpr[17]));
   return cpu.mtvec;
 }

@@ -25,18 +25,22 @@
 static void setCSRs(word_t csr, word_t t)
 {
   if(csr == 0x00){cpu.mstatus = t;}
+  else if(csr == 0x04){cpu.mie = t;}
+  else if(csr == 0x05){cpu.mtvec = t;}
   else if(csr == 0x41){cpu.mepc = t;}
   else if(csr == 0x42){cpu.mcause = t;}
-  else if(csr == 0x05){cpu.mtvec = t;}
+  else if(csr == 0x44){cpu.mip = t;}
   else{printf("csr number:%ld\n", csr);assert(0);}
 }
 
 static void getCSRs(word_t *t, word_t csr)
 {
   if(csr == 0x00){*t = cpu.mstatus;}
+  else if(csr == 0x04){*t = cpu.mie;}
+  else if(csr == 0x05){*t = cpu.mtvec;}
   else if(csr == 0x41){*t = cpu.mepc;}
   else if(csr == 0x42){*t = cpu.mcause;}
-  else if(csr == 0x05){*t = cpu.mtvec;}
+  else if(csr == 0x44){*t = cpu.mip;}
   else{printf("csr number:%ld\n", csr);assert(0);}
 }
 
@@ -84,6 +88,7 @@ static int decode_exec(Decode *s)
   s->dnpc = s->snpc;
   word_t shamt = BITS(i, 25, 20);
   word_t csr = BITS(i, 27, 20);
+  word_t zimm = BITS(i, 19, 15);
 
 #define INSTPAT_INST(s) ((s)->isa.inst.val)
 #define INSTPAT_MATCH(s, name, type, ... /* body */ ) { \
@@ -107,7 +112,7 @@ static int decode_exec(Decode *s)
   INSTPAT("0000001 ????? ????? 110 ????? 01110 11", remw   , R, R(dest) = SEXT(BITS((int)BITS(src1, 31, 0) % (int)BITS(src2, 31, 0), 31, 0), 32));
   INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu   , R, R(dest) = src1 % src2);
   INSTPAT("0000001 ????? ????? 111 ????? 01110 11", remuw  , R, R(dest) = SEXT(BITS(BITS(src1, 31, 0) % BITS(src2, 31, 0), 31, 0), 32));
-  INSTPAT("0000000 ????? ????? 001 ????? 01100 11", sll    , R, R(dest) = src1 << BITS(src2, 5, 0));
+  INSTPAT("0000000 ????? ????? 001 ????? 01100 11", sll    , R, R(dest) = src1 << src2);
   INSTPAT("0000000 ????? ????? 001 ????? 01110 11", sllw   , R, R(dest) = SEXT(BITS(src1 << BITS(src2, 4, 0), 31, 0), 32));
   INSTPAT("0000000 ????? ????? 101 ????? 01110 11", srlw   , R, R(dest) = SEXT(BITS(((uint32_t)BITS(src1, 31, 0)) >> BITS(src2, 4, 0), 31, 0), 32));
   INSTPAT("0100000 ????? ????? 101 ????? 01110 11", sraw   , R, R(dest) = SEXT(BITS((int)BITS(src1, 31, 0) >> BITS(src2, 4, 0), 31, 0), 32));
@@ -117,7 +122,8 @@ static int decode_exec(Decode *s)
   INSTPAT("0000000 ????? ????? 010 ????? 01100 11", slt    , R, if((long long) src1 < (long long) src2)R(dest)=1;else R(dest)=0;);
   INSTPAT("0000000 ????? ????? 011 ????? 01100 11", sltu   , R, if(src1 < src2)R(dest)=1;else R(dest)=0);
 
-  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , R, s->dnpc = cpu.mepc;);
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , R, cpu.mstatus |= (BITS(cpu.mstatus, 7, 7) << 3); // 将mstatus的MPIE(7)恢复到MIE(3)位
+                                                                s->dnpc = cpu.mepc;);
   
   
   //I-type
@@ -157,7 +163,14 @@ static int decode_exec(Decode *s)
                                                                 getCSRs(&temp, csr);
                                                                 setCSRs(csr, src1);
                                                                 R(dest) = temp;);
-  
+  INSTPAT("??????? ????? ????? 110 ????? 11100 11", csrrsi , I, word_t temp;
+                                                                getCSRs(&temp, csr);
+                                                                setCSRs(csr, (temp | zimm));
+                                                                R(dest) = temp;);
+  INSTPAT("??????? ????? ????? 111 ????? 11100 11", csrrci , I, word_t temp;
+                                                                getCSRs(&temp, csr);
+                                                                setCSRs(csr, (temp & (~zimm)));
+                                                                R(dest) = temp;);
 
   //S-type
   INSTPAT("??????? ????? ????? 000 ????? 01000 11", sb     , S, Mw(src1 + dest, 1, src2));

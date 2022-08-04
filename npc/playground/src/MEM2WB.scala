@@ -16,8 +16,12 @@ class MEM2WB extends Module
         val MEMwrb2csr = Input(UInt(64.W))
         val MEMmemout  = Input(UInt(64.W))
         val MEMLOADctrl= Input(UInt(3.W))
-        val MEMecall_flag=Input(Bool())
+        val MEMclint_enw=Input(Bool())
+        val MEMclint_mstatus = Input(UInt(64.W))
+        val MEMclint_mepc =    Input(UInt(64.W))
+        val MEMclint_mcause =  Input(UInt(64.W))
         val MEMLoad_flag=Input(Bool())
+        val MEMwaddr   = Input(UInt(64.W))
         val MEMpc      = Input(UInt(64.W))
         val MEMinst    = Input(UInt(32.W))
 
@@ -30,8 +34,12 @@ class MEM2WB extends Module
         val WBwrb2csr  = Output(UInt(64.W))
         val WBmemout   = Output(UInt(64.W))
         val WBLOADctrl = Output(UInt(3.W))
-        val WBecall_flag=Output(Bool())
+        val WBclint_enw= Output(Bool())
+        val WBclint_mstatus = Output(UInt(64.W))
+        val WBclint_mepc    = Output(UInt(64.W))
+        val WBclint_mcause  = Output(UInt(64.W))
         val WBLoad_flag= Output(Bool())
+        val WBwaddr   = Output(UInt(64.W))
         val WBpc       = Output(UInt(64.W))
         val WBinst     = Output(UInt(32.W))
     })
@@ -44,25 +52,33 @@ class MEM2WB extends Module
     val WBwrb2csr_reg  = RegEnable(io.MEMwrb2csr , 0.U, io.enMEM2WB)
     val WBmemout_reg   = RegEnable(io.MEMmemout  , 0.U, io.enMEM2WB)
     val WBLOADctrl_reg = RegEnable(io.MEMLOADctrl, 0.U, io.enMEM2WB)
-    val WBecall_flag_reg=RegEnable(io.MEMecall_flag,false.B, io.enMEM2WB)
+    val WBclint_enw_reg= RegEnable(io.MEMclint_enw, false.B, io.enMEM2WB)
+    val WBclint_mstatus_reg= RegEnable(io.MEMclint_mstatus, 0.U, io.enMEM2WB)
+    val WBclint_mepc_reg   = RegEnable(io.MEMclint_mepc, 0.U, io.enMEM2WB)
+    val WBclint_mcause_reg = RegEnable(io.MEMclint_mcause, 0.U, io.enMEM2WB)
     val WBLoad_flag_reg= RegEnable(io.MEMLoad_flag, false.B, io.enMEM2WB)
-    val WBpc_reg       = RegEnable(io.MEMpc      , 0.U, io.enMEM2WB)
-    val WBinst_reg     = RegEnable(io.MEMinst    , 0.U, io.enMEM2WB)
+    val WBwaddr_reg    = RegEnable(io.MEMwaddr,     0.U, io.enMEM2WB)
+    val WBpc_reg       = RegEnable(io.MEMpc,        0.U, io.enMEM2WB)
+    val WBinst_reg     = RegEnable(io.MEMinst,      0.U, io.enMEM2WB)
 
     when(io.flush)
     {
-        WBrd_reg       := 0.U
-        WBenw_reg      := 0.U
-        WBcsr_enw_reg  := 0.U
-        WBwrb2reg_reg  := 0.U
-        WBcsr_rd_reg   := 0.U
-        WBwrb2csr_reg  := 0.U
-        WBmemout_reg   := 0.U
-        WBLOADctrl_reg := 0.U
-        WBecall_flag_reg:=false.B
-        WBLoad_flag_reg:= false.B
-        WBpc_reg       := "h00000000".U(64.W)
-        WBinst_reg     := "h00000013".U(64.W)
+        WBrd_reg        := 0.U
+        WBenw_reg       := 0.U
+        WBcsr_enw_reg   := 0.U
+        WBwrb2reg_reg   := 0.U
+        WBcsr_rd_reg    := 0.U
+        WBwrb2csr_reg   := 0.U
+        WBmemout_reg    := 0.U
+        WBLOADctrl_reg  := 0.U
+        WBclint_enw_reg := false.B
+        WBclint_mstatus_reg := 0.U
+        WBclint_mepc_reg    := 0.U
+        WBclint_mcause_reg  := 0.U
+        WBLoad_flag_reg := false.B
+        WBwaddr_reg     := 0.U
+        WBpc_reg        := "h00000000".U(64.W)
+        WBinst_reg      := "h00000013".U(64.W)
     }
 
     io.WBrd         := WBrd_reg    
@@ -73,8 +89,12 @@ class MEM2WB extends Module
     io.WBwrb2csr    := WBwrb2csr_reg
     io.WBmemout     := WBmemout_reg
     io.WBLOADctrl   := WBLOADctrl_reg
-    io.WBecall_flag := WBecall_flag_reg
+    io.WBclint_enw  := WBclint_enw_reg
+    io.WBclint_mstatus  := WBclint_mstatus_reg
+    io.WBclint_mepc     := WBclint_mepc_reg   
+    io.WBclint_mcause   := WBclint_mcause_reg 
     io.WBLoad_flag  := WBLoad_flag_reg
+    io.WBwaddr      := WBwaddr_reg
     io.WBpc         := WBpc_reg    
     io.WBinst       := WBinst_reg  
 }

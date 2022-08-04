@@ -58,10 +58,16 @@ class CSR extends BlackBox with HasBlackBoxInline
         val in_data = Input(UInt(64.W))
         val enw = Input(Bool())
 
-        val ecall_mepc = Input(UInt(64.W))
-        val ecall_mcause = Input(UInt(64.W))
-        val ecall_flag = Input(Bool())
+        // val ecall_mepc = Input(UInt(64.W))
+        // val ecall_mcause = Input(UInt(64.W))
+        // val ecall_flag = Input(Bool())
+        val clint_enw = Input(Bool())
+        val mstatus_in = Input(UInt(64.W))
+        val mepc_in = Input(UInt(64.W))
+        val mcause_in = Input(UInt(64.W))
 
+        val global_int_en = Output(Bool())
+        val mstatus_out = Output(UInt(64.W))
         val mtvec_out = Output(UInt(64.W))
         val mepc_out = Output(UInt(64.W))
         val csr_out = Output(UInt(64.W))
@@ -78,18 +84,27 @@ class CSR extends BlackBox with HasBlackBoxInline
 |    input [63:0]in_data,
 |    input enw,
 |
-|    input [63:0]ecall_mepc,
-|    input [63:0]ecall_mcause,
-|    input ecall_flag,
+|    //input [63:0]ecall_mepc,
+|    //input [63:0]ecall_mcause,
+|    //input ecall_flag,
+|   
+|    input clint_enw,
+|    input [63:0]mstatus_in,
+|    input [63:0]mepc_in,
+|    input [63:0]mcause_in,
 |
+|    output global_int_en,
+|    output [63:0]mstatus_out,
 |    output [63:0]mtvec_out,
 |    output [63:0]mepc_out,
 |    output [63:0]csr_out
 |);
 |reg [63:0] mstatus;
+|reg [63:0] mie    ;
 |reg [63:0] mtvec  ;
 |reg [63:0] mepc   ;
 |reg [63:0] mcause ;
+|reg [63:0] mip    ;
 |
 |import "DPI-C" function void read_mstatus(input longint a);
 |import "DPI-C" function void read_mtvec(input longint a);
@@ -109,26 +124,34 @@ class CSR extends BlackBox with HasBlackBoxInline
 |    if(reset)
 |    begin
 |        mstatus<=64'ha0001800;
+|        mie<='d0;
 |        mtvec<='d0;
 |        mepc<='d0;
 |        mcause<='d0;
+|        mip<='d0;
 |    end
 |    else
 |    begin
-|        if(enw) 
+|        if(enw || clint_enw) 
 |        begin
-|            mstatus <=(ecall_flag == 'd1)?mstatus:
+|            mstatus <=(clint_enw == 'd1)?mstatus_in:
 |                      (write_idx == 8'h00)?in_data:mstatus;
-|            mtvec   <=(ecall_flag == 'd1)?mtvec:
+|            mie     <=(clint_enw == 'd1)?mie:
+|                      (write_idx == 8'h04)?in_data:mie;
+|            mtvec   <=(clint_enw == 'd1)?mtvec:
 |                      (write_idx == 8'h05)?in_data:mtvec;
-|            mepc    <=(ecall_flag == 'd1)?ecall_mepc:
+|            mepc    <=(clint_enw == 'd1)?mepc_in:
 |                      (write_idx == 8'h41)?in_data:mepc;
-|            mcause  <=(ecall_flag == 'd1)?ecall_mcause:
+|            mcause  <=(clint_enw == 'd1)?mcause_in:
 |                      (write_idx == 8'h42)?in_data:mcause;
+|            mip     <=(clint_enw == 'd1)?mip:
+|                      (write_idx == 8'h44)?in_data:mip;
 |        end
 |    end
 |end
 |
+|assign global_int_en = mstatus[3];
+|assign mstatus_out = mstatus;
 |assign mtvec_out = mtvec;
 |assign mepc_out = mepc;
 |assign csr_out = (read_idx == 8'h00)?mstatus:

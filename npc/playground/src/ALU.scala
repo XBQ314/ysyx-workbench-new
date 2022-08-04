@@ -99,16 +99,65 @@ class Muldiv extends Module
 {
     val io = IO(new Bundle
     {
+        val clock = Input(Clock())
+        val reset = Input(Bool())
+
         val in1 = Input(UInt(64.W))
         val in2 = Input(UInt(64.W))
         val ctrl = Input(UInt(2.W))
 
+        val mul_flag = Input(Bool())
+        val out_valid = Output(Bool())
         val out = Output(UInt(64.W))
     })
+    val MUL0 = Module(new MUL())
+    val nxt_state = Wire(UInt(3.W))
+    val cur_state = RegNext(nxt_state, "b000".U)
+    val mul_vaild = Wire(Bool())
+    
+    val IDLE = "b000".U
+    val INPUT = "b001".U
+    val BUSY_MUL = "b010".U
+    val BUSY_DIV = "b011".U
+    val BUSY_MOD = "b100".U
+
+    nxt_state := IDLE
+    mul_vaild := false.B
+
+    //MUL signal
+    MUL0.io.clock := io.clock
+    MUL0.io.reset := io.reset
+
+    MUL0.io.mul_vaild := mul_vaild
+    MUL0.io.flush := false.B
+    MUL0.io.mulw := false.B
+    MUL0.io.mul_signed := "b00".U
+
+    MUL0.io.multiplicand := io.in1
+    MUL0.io.multipiler := io.in2
+    io.out_valid := MUL0.io.out_valid
+
+    when(cur_state === IDLE)
+    {
+        mul_vaild := false.B
+        when(io.mul_flag && MUL0.io.mul_ready){nxt_state := INPUT}
+        .otherwise{nxt_state := IDLE}
+    }.elsewhen(cur_state === INPUT)
+    {
+        mul_vaild := true.B
+        when(io.mul_flag){nxt_state := BUSY_MUL}
+        .otherwise{nxt_state := IDLE}
+    }.elsewhen(cur_state === BUSY_MUL)
+    {
+        mul_vaild := false.B
+        when(MUL0.io.out_valid){nxt_state := IDLE}
+        .otherwise{nxt_state := BUSY_MUL}
+    }
+
     io.out := 0.U
     switch(io.ctrl)
     {
-    is("b00".U){io.out := io.in1 * io.in2}
+    is("b00".U){io.out := MUL0.io.result_lo}
     is("b01".U){io.out := io.in1 / io.in2}
     is("b10".U){io.out := io.in1 % io.in2}
     }
@@ -165,11 +214,15 @@ class ALU extends Module
 {
     val io = IO(new Bundle
     {
+        val clock = Input(Clock())
+        val reset = Input(Bool())
+
         val regfile_out1 = Input(UInt(64.W)) //from regFile
         val regfile_out2 = Input(UInt(64.W)) //from regFile
         val csr_out     = Input(UInt(64.W))
         val csr_enw     = Input(UInt(1.W))
         val imm = Input(UInt(64.W)) //from IDU
+        val zimm = Input(UInt(5.W))
         val pc = Input(UInt(64.W)) //from IFU
         val shamt = Input(UInt(6.W))
 
@@ -182,10 +235,12 @@ class ALU extends Module
         // val signed_flag = Input(UInt(1.W))
         val ALUctrl = Input(new ALUctrl())
 
+        val mul_flag = Input(Bool())
         val Btype_flag = Input(Bool())
         val pc_next = Output(UInt(64.W))
         val jump_flag = Output(Bool()) // 负责探测B型造成的跳转
         val flush_req = Output(Bool())
+        val mulstall_req = Output(Bool())
 
         val ALUout_data = Output(UInt(64.W)) //to regFile
     })
@@ -199,8 +254,8 @@ class ALU extends Module
     // calcuSrc1
     calcuSrc1.io.in0 := io.regfile_out1
     calcuSrc1.io.in1 := io.pc
-    calcuSrc1.io.in2 := 0.U
-    calcuSrc1.io.in3 := 0.U
+    calcuSrc1.io.in2 := Cat(0.U(59.W), io.zimm)
+    calcuSrc1.io.in3 := ~Cat(0.U(59.W), io.zimm)
     calcuSrc1.io.ctrl := io.ALUctrl.Calcuin1_ctrl(3,1)
     calcuSrc1.io.trun_type := io.ALUctrl.Calcuin1_ctrl(0)
 
@@ -225,9 +280,13 @@ class ALU extends Module
     calcuBit.io.signed_length := io.ALUctrl.Bit_signedlen
 
     // calcuMD
+    calcuMD.io.clock := io.clock
+    calcuMD.io.reset := io.reset
     calcuMD.io.in1 := calcuSrc1.io.out
     calcuMD.io.in2 := calcuSrc2.io.out
     calcuMD.io.ctrl := io.ALUctrl.Muldiv_ctrl
+    calcuMD.io.mul_flag := io.mul_flag
+    io.mulstall_req := io.mul_flag && (!calcuMD.io.out_valid)
 
     // aluCompare
     aluCompare.io.ZF := calcuAdd.io.ZF

@@ -37,11 +37,17 @@ void isa_reg_display()
     }
     printf("\n");
   }
-  // printf("mtvec: 0x%016lX \t", cpu.mtvec);
-  // printf("mepc: 0x%016lX \t", cpu.mepc);
-  // printf("mstatus: 0x%016lX \t", cpu.mstatus);
-  // printf("mcause: 0x%016lX \t\n", cpu.mcause);
   return;
+}
+
+void isa_csr_display()
+{
+  printf("mtvec: 0x%016lX \n", cpu.mtvec);
+  printf("mie: 0x%016lX \n", cpu.mie);
+  printf("mepc: 0x%016lX \n", cpu.mepc);
+  printf("mstatus: 0x%016lX \n", cpu.mstatus);
+  printf("mcause: 0x%016lX \n", cpu.mcause);
+  printf("mip: 0x%016lX \n", cpu.mip);
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) 

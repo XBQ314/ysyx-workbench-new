@@ -8,7 +8,7 @@
 
 extern unsigned char mem[0x8000000];
 extern const char *regs[32];
-bool access_device = false;
+bool mmio_flag = false;
 
 void (*difftest_memcpy)(uint64_t addr, void *buf, size_t n, bool direction) = NULL;
 void (*difftest_regcpy)(void *dut, bool direction) = NULL;
@@ -66,11 +66,13 @@ void difftest_check(struct npc_reg_struct* nemu_regs)
                           (npc_regs.mtvec != nemu_regs->mtvec) ||
                           (npc_regs.mepc != nemu_regs->mepc) ||
                           (npc_regs.mcause != nemu_regs->mcause);
+    // printf("(npc_mstatus = %lx) != (nemu_mstatus = %lx)\n", npc_regs.mstatus, nemu_regs->mstatus);
     if(csr_error_flag)
     {
         npc_state.state = NPC_ABORT;
         PRINT_FONT_RED
         printf("Difftest check error; CSR\n");
+        printf("At pc=%lx\n", npc_regs.pc);
         if(npc_regs.mstatus != nemu_regs->mstatus)
         printf("(npc_mstatus = %lx) != (nemu_mstatus = %lx)\n", npc_regs.mstatus, nemu_regs->mstatus);
         if(npc_regs.mtvec != nemu_regs->mtvec)

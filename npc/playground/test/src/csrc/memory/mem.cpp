@@ -33,9 +33,11 @@ static const unsigned int img[] =
 {
 0x00150513, // addi a0,a0,1
 0x00150513, // addi a0,a0,1
+0x00500793, // li	a5,5
+0x01d79793, // slli	a5,a5,0x1d
+0x3ea78c23, // sb	a0,1016(a5)
 0x00150513, // addi a0,a0,1
-0x00000013, // nop
-0x00000013, // nop
+0x00150513, // addi a0,a0,1
 0x00150513, // addi a0,a0,1
 0x00100073, // ebreak
 };
@@ -76,12 +78,13 @@ unsigned int mem_read(unsigned long addr, int len)
     return result;
 }
 
-extern "C" void pmem_read(long long raddr, long long *rdata) 
+extern "C" void pmem_read(long long raddr, long long *rdata) // Load
 {
 // 总是读取地址为`raddr & ~0x7ull`的8字节返回给`rdata`
     if(raddr == 0xa0000048)
     {
         // long long tmp = gettime();
+        mmio_flag = true;
         *rdata = gettime();
     }
 
@@ -98,7 +101,7 @@ extern "C" void pmem_read(long long raddr, long long *rdata)
 
 }
 
-extern "C" void pmem_write(long long waddr, long long wdata, uint8_t wmask) 
+extern "C" void pmem_write(long long waddr, long long wdata, uint8_t wmask) // Store
 {
 // 总是往地址为`waddr & ~0x7ull`的8字节按写掩码`wmask`写入`wdata`
 // `wmask`中每比特表示`wdata`中1个字节的掩码,
@@ -107,7 +110,7 @@ extern "C" void pmem_write(long long waddr, long long wdata, uint8_t wmask)
     if(waddr == 0xa00003f8) // 串口device
     {
         // printf("111111111111111111111111111111111111111111111111111\n");
-        access_device = true;
+        mmio_flag = true;
         char *tmp = NULL;
         tmp = (char *)(&wdata);
         assert(tmp);

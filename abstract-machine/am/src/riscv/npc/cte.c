@@ -27,7 +27,7 @@ Context* __am_irq_handle(Context *c)
       default: ev.event = EVENT_ERROR; break;
     }
 
-    c = user_handler(ev, c); // 调用lite-nano中设定的do_event函数，实现时间处理并更改上下文
+    c = user_handler(ev, c); // 调用lite-nano中设定的do_event函数，实现事件处理并更改上下文
     assert(c != NULL);
   }
 
@@ -58,5 +58,16 @@ bool ienabled() {
   return false;
 }
 
-void iset(bool enable) {
+void iset(bool enable) 
+{
+  if(enable)
+  {
+    asm volatile("csrsi mstatus, 8");
+    //set_csr(mie, MIP_MTIP);
+  }
+  else
+  {
+    asm volatile("csrci mstatus, 8");
+    //clear_csr(mie, MIP_MTIP);
+  }
 }

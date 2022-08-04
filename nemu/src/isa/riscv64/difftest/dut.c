@@ -33,7 +33,7 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc)
     printf("difftest pc error.dut pc = %lx, ref pc = %lx.\n", cpu.pc, ref_r->pc);
     return false;
   }
-  
+
   // if(ref_r->mstatus != cpu.mstatus)
   // {
   //   printf("difftest mstatus error!\n");

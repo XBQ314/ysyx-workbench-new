@@ -7,7 +7,6 @@ class CTRL extends Module
     {
         val flushreq_id = Input(Bool())
         val flushreq_ex = Input(Bool())
-        val flushreq_ecall = Input(Bool())
 
         val id_rs1 = Input(UInt(5.W))
         val id_rs2 = Input(UInt(5.W))
@@ -19,6 +18,7 @@ class CTRL extends Module
         val wb_enw = Input(UInt(1.W))
 
         val loadflag_ex = Input(Bool())
+        val mulstall_req = Input(Bool())
 
         val feedflag_ex2id_rs1 = Output(Bool())
         val feedflag_ex2id_rs2 = Output(Bool())
@@ -90,5 +90,13 @@ class CTRL extends Module
         io.stall_id2ex  := false.B
         io.stall_ex2mem := false.B
         io.stall_mem2wb := false.B
+    }
+    when(io.mulstall_req)
+    {
+        io.stall_ifu    := true.B
+        io.stall_if2id  := true.B
+        io.stall_id2ex  := true.B
+        io.stall_ex2mem := true.B
+        io.stall_mem2wb := true.B
     }
 }

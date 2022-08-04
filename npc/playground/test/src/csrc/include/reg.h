@@ -12,6 +12,7 @@ extern struct npc_reg_struct npc_regs;
 
 void update_npc_regs();
 void display_reg();
+void display_csr();
 void check_ebreak();
 uint64_t find_reg_str2val(const char *s, bool *success);
 

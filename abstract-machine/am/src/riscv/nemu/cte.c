@@ -71,5 +71,16 @@ bool ienabled() {
   return false;
 }
 
-void iset(bool enable) {
+void iset(bool enable) 
+{
+  if(enable)
+  {
+    asm volatile("csrsi mstatus, 8");
+    //set_csr(mie, MIP_MTIP);
+  }
+  else
+  {
+    asm volatile("csrci mstatus, 8");
+    //clear_csr(mie, MIP_MTIP);
+  }
 }

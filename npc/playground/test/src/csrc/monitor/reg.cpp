@@ -23,6 +23,7 @@ extern "C" void set_gpr_ptr(const svOpenArrayHandle r)
 
 extern "C" void read_mstatus(uint64_t a)
 {
+  // printf("mstatus:0x%llx\n", a);
   npc_regs.mstatus = a;
 }
 
@@ -87,6 +88,14 @@ void display_reg()
     }
     printf("\n");
   }
+}
+
+void display_csr()
+{
+  printf("npc_mstatus = %lx\n", npc_regs.mstatus);
+  printf("npc_mtvec = %lx\n", npc_regs.mtvec);
+  printf("npc_mepc = %lx\n", npc_regs.mepc);
+  printf("npc_mcause = %lx\n", npc_regs.mcause);
 }
 
 uint64_t find_reg_str2val(const char *s, bool *success) 

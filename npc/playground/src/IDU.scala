@@ -55,6 +55,7 @@ class IDU extends Module
         val csridx = Output(UInt(8.W))
 
         val imm = Output(UInt(64.W))
+        val zimm = Output(UInt(5.W))
         val shamt = Output(UInt(6.W))
 
         val ALUctrl = Output(new ALUctrl)
@@ -65,11 +66,12 @@ class IDU extends Module
         val pc_next = Output(UInt(64.W))
         val jump_flag = Output(Bool()) // 负责探测jal和jalr造成的跳转
         val flush_req = Output(Bool())
+        val mul_flag = Output(Bool())
         val Btype_flag = Output(Bool())
         val Load_flag = Output(Bool())
-        val enw = Output(Bool())
+        val enw = Output(Bool()) // Reg enw
         val csr_enw = Output(Bool())
-        val ecall_flag = Output(Bool())
+        // val ecall_flag = Output(Bool())
     })
     val ins = Instructions
     val ImmCalcu1 = Module(new ImmCalcu())
@@ -82,6 +84,7 @@ class IDU extends Module
     io.rs2 := io.inst(24, 20)
     io.csridx := io.inst(27, 20)
     io.imm := ImmCalcu1.io.imm
+    io.zimm := io.inst(19, 15)
     io.shamt := io.inst(25, 20)
     ImmCalcu1.io.inst := io.inst
     
@@ -108,6 +111,7 @@ class IDU extends Module
         ins.remuw-> List("b000".U, "b0010_0010_0_0000_10_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         ins.remu -> List("b000".U, "b0000_0000_0_0000_10_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
 
+        ins.sll ->  List("b000".U, "b0000_0000_0_0000_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         ins.sllw->  List("b000".U, "b0000_0011_0_0000_00_011_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         ins.srlw->  List("b000".U, "b0010_0011_0_0010_00_011_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         ins.sraw->  List("b000".U, "b0010_0011_0_0010_00_011_100_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
@@ -146,6 +150,8 @@ class IDU extends Module
         
         ins.csrrs-> List("b000".U, "b0000_0000_0_0110_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         ins.csrrw-> List("b000".U, "b0000_0000_0_0000_00_010_000_11".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.csrrsi->List("b000".U, "b1000_0000_0_0110_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.csrrci->List("b000".U, "b1100_0000_0_0100_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         //S-type
         ins.sb ->   List("b010".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h01".U, false.B),
         ins.sh ->   List("b010".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h03".U, false.B),
@@ -181,10 +187,11 @@ class IDU extends Module
     io.Wmask := ctrlList(6)
     io.enw := (ctrlList(7) === true.B) && (io.inst(11, 7) =/= 0.U)
 
+    io.mul_flag := (ctrlList(1)(9, 8) === "b00".U) && (ctrlList(1)(7, 6) === "b10".U)
     io.Btype_flag := Mux(ctrlList(0) === "b011".U, true.B, false.B)
     io.Load_flag := Mux(ctrlList(5) === "b000".U, false.B, true.B)
-    io.csr_enw := (io.inst === ins.csrrs) || (io.inst === ins.csrrw) || (io.inst === ins.ecall)
-    io.ecall_flag := (io.inst === ins.ecall)
+    io.csr_enw := (io.inst === ins.csrrs) || (io.inst === ins.csrrw) ||(io.inst === ins.csrrsi) || (io.inst === ins.csrrci)
+    // io.ecall_flag := (io.inst === ins.ecall)
     // val IDUCampare0 = Module(new Compare())
     // val compare_result = Wire(Bool())
     // IDUCampare0.io.in1 := io.regfile_out1
@@ -204,17 +211,18 @@ class IDU extends Module
         io.jump_flag := true.B
         io.flush_req := true.B
         io.pc_next := Mux(io.inst === ins.jalr, pc_next_tmp&("hFF_FF_FF_FF_FF_FF_FF_FE".U), pc_next_tmp)
-    }.elsewhen(io.inst === ins.ecall)
-    {
-        pc_next_tmp := io.mtvec_out
-        io.jump_flag := true.B
-        io.flush_req := true.B
-        io.pc_next := pc_next_tmp
-    }.elsewhen(io.inst === ins.mret)
-    {
-        pc_next_tmp := io.mepc_out
-        io.jump_flag := true.B
-        io.flush_req := true.B
-        io.pc_next := pc_next_tmp  
     }
+    // .elsewhen(io.inst === ins.ecall)
+    // {
+    //     pc_next_tmp := io.mtvec_out
+    //     io.jump_flag := true.B
+    //     io.flush_req := true.B
+    //     io.pc_next := pc_next_tmp
+    // }.elsewhen(io.inst === ins.mret)
+    // {
+    //     pc_next_tmp := io.mepc_out
+    //     io.jump_flag := true.B
+    //     io.flush_req := true.B
+    //     io.pc_next := pc_next_tmp  
+    // }
 }
