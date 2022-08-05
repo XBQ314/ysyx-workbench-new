@@ -107,50 +107,76 @@ class Muldiv extends Module
         val ctrl = Input(UInt(2.W))
 
         val mul_flag = Input(Bool())
+        val div_flag = Input(Bool())
         val out_valid = Output(Bool())
         val out = Output(UInt(64.W))
     })
     val MUL0 = Module(new MUL())
+    val DIV0 = Module(new DIV())
     val nxt_state = Wire(UInt(3.W))
     val cur_state = RegNext(nxt_state, "b000".U)
-    val mul_vaild = Wire(Bool())
+    val mul_valid = Wire(Bool())
+    val div_valid = Wire(Bool())
     
     val IDLE = "b000".U
-    val INPUT = "b001".U
+    val INPUT_MUL = "b001".U
+    val INPUT_DIV = "b101".U
     val BUSY_MUL = "b010".U
     val BUSY_DIV = "b011".U
     val BUSY_MOD = "b100".U
 
     nxt_state := IDLE
-    mul_vaild := false.B
+    mul_valid := false.B
+    div_valid := false.B
 
     //MUL signal
     MUL0.io.clock := io.clock
     MUL0.io.reset := io.reset
 
-    MUL0.io.mul_vaild := mul_vaild
+    MUL0.io.mul_valid := mul_valid
     MUL0.io.flush := false.B
     MUL0.io.mulw := false.B
     MUL0.io.mul_signed := "b00".U
 
     MUL0.io.multiplicand := io.in1
     MUL0.io.multipiler := io.in2
-    io.out_valid := MUL0.io.out_valid
+    // DIV signal
+    DIV0.io.clock := io.clock
+    DIV0.io.reset := io.reset
+
+    DIV0.io.div_valid := div_valid
+    DIV0.io.flush := false.B
+    DIV0.io.divw := false.B
+    DIV0.io.div_signed := false.B
+
+    DIV0.io.dividend := io.in1
+    DIV0.io.divisor := io.in2
+    io.out_valid := MUL0.io.out_valid || DIV0.io.out_valid
 
     when(cur_state === IDLE)
     {
-        mul_vaild := false.B
-        when(io.mul_flag && MUL0.io.mul_ready){nxt_state := INPUT}
+        mul_valid := false.B
+        div_valid := false.B
+        when(io.mul_flag && MUL0.io.mul_ready){nxt_state := INPUT_MUL}
+        .elsewhen(io.div_flag && DIV0.io.div_ready){nxt_state := INPUT_DIV}
         .otherwise{nxt_state := IDLE}
-    }.elsewhen(cur_state === INPUT)
+    }.elsewhen(cur_state === INPUT_MUL)
     {
-        mul_vaild := true.B
+        mul_valid := true.B
+        div_valid := false.B
         when(io.mul_flag){nxt_state := BUSY_MUL}
         .otherwise{nxt_state := IDLE}
-    }.elsewhen(cur_state === BUSY_MUL)
+    }.elsewhen(cur_state === INPUT_DIV)
     {
-        mul_vaild := false.B
-        when(MUL0.io.out_valid){nxt_state := IDLE}
+        mul_valid := false.B
+        div_valid := true.B
+        when(io.div_flag){nxt_state := BUSY_DIV}
+        .otherwise{nxt_state := IDLE}
+    }.elsewhen((cur_state === BUSY_MUL) || (cur_state === BUSY_DIV))
+    {
+        mul_valid := false.B
+        div_valid := false.B
+        when(MUL0.io.out_valid || DIV0.io.out_valid){nxt_state := IDLE}
         .otherwise{nxt_state := BUSY_MUL}
     }
 
@@ -158,7 +184,7 @@ class Muldiv extends Module
     switch(io.ctrl)
     {
     is("b00".U){io.out := MUL0.io.result_lo}
-    is("b01".U){io.out := io.in1 / io.in2}
+    is("b01".U){io.out := DIV0.io.quotient}
     is("b10".U){io.out := io.in1 % io.in2}
     }
 }
@@ -235,11 +261,13 @@ class ALU extends Module
         // val signed_flag = Input(UInt(1.W))
         val ALUctrl = Input(new ALUctrl())
 
+        val div_flag = Input(Bool())
         val mul_flag = Input(Bool())
         val Btype_flag = Input(Bool())
         val pc_next = Output(UInt(64.W))
         val jump_flag = Output(Bool()) // 负责探测B型造成的跳转
         val flush_req = Output(Bool())
+        val divstall_req = Output(Bool())
         val mulstall_req = Output(Bool())
 
         val ALUout_data = Output(UInt(64.W)) //to regFile
@@ -285,8 +313,10 @@ class ALU extends Module
     calcuMD.io.in1 := calcuSrc1.io.out
     calcuMD.io.in2 := calcuSrc2.io.out
     calcuMD.io.ctrl := io.ALUctrl.Muldiv_ctrl
+    calcuMD.io.div_flag := io.div_flag
     calcuMD.io.mul_flag := io.mul_flag
     io.mulstall_req := io.mul_flag && (!calcuMD.io.out_valid)
+    io.divstall_req := io.div_flag && (!calcuMD.io.out_valid)
 
     // aluCompare
     aluCompare.io.ZF := calcuAdd.io.ZF

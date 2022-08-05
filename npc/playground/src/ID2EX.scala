@@ -26,6 +26,7 @@ class ID2EX extends Module
         val IDclint_mstatus = Input(UInt(64.W))
         val IDclint_mepc = Input(UInt(64.W))
         val IDclint_mcause = Input(UInt(64.W))
+        val IDdiv_flag = Input(Bool())
         val IDmul_flag = Input(Bool())
         val IDBtype_flag = Input(Bool())
         val IDLoad_flag = Input(Bool())
@@ -52,6 +53,7 @@ class ID2EX extends Module
         val EXclint_mstatus = Output(UInt(64.W))
         val EXclint_mepc    = Output(UInt(64.W))
         val EXclint_mcause  = Output(UInt(64.W))
+        val EXdiv_flag = Output(Bool())
         val EXmul_flag = Output(Bool())
         val EXBtype_flag = Output(Bool())
         val EXLoad_flag = Output(Bool())
@@ -77,6 +79,7 @@ class ID2EX extends Module
     val EXclint_mstatus_reg = RegEnable(io.IDclint_mstatus, 0.U, io.enID2EX)
     val EXclint_mepc_reg    = RegEnable(io.IDclint_mepc,    0.U, io.enID2EX)
     val EXclint_mcause_reg  = RegEnable(io.IDclint_mcause,  0.U, io.enID2EX)
+    val EXdiv_flag_reg  = RegEnable(io.IDdiv_flag   , false.B, io.enID2EX)
     val EXmul_flag_reg  = RegEnable(io.IDmul_flag   , false.B, io.enID2EX)
     val EXBtype_flag_reg= RegEnable(io.IDBtype_flag , false.B, io.enID2EX)
     val EXLoad_flag_reg = RegEnable(io.IDLoad_flag  , false.B, io.enID2EX)
@@ -103,6 +106,7 @@ class ID2EX extends Module
         EXclint_mstatus_reg := 0.U
         EXclint_mepc_reg    := 0.U
         EXclint_mcause_reg  := 0.U
+        EXdiv_flag_reg  := false.B
         EXmul_flag_reg  := false.B
         EXBtype_flag_reg:= false.B
         EXLoad_flag_reg := false.B
@@ -128,6 +132,7 @@ class ID2EX extends Module
     io.EXclint_mstatus  := EXclint_mstatus_reg
     io.EXclint_mepc     := EXclint_mepc_reg   
     io.EXclint_mcause   := EXclint_mcause_reg 
+    io.EXdiv_flag       := EXdiv_flag_reg
     io.EXmul_flag       := EXmul_flag_reg
     io.EXBtype_flag     := EXBtype_flag_reg 
     io.EXLoad_flag      := EXLoad_flag_reg 

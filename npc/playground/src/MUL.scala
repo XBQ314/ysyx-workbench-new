@@ -8,7 +8,7 @@ class MUL extends BlackBox with HasBlackBoxInline
         val clock = Input(Clock())
         val reset  = Input(Bool())
 
-        val mul_vaild = Input(Bool())
+        val mul_valid = Input(Bool())
         val flush = Input(Bool())
         val mulw = Input(Bool())
         val mul_signed = Input(UInt(2.W))
@@ -30,7 +30,7 @@ class MUL extends BlackBox with HasBlackBoxInline
 |    input clock,
 |    input reset,
 |
-|    input mul_vaild, //为高表示输入的数据有效，如果没有新的乘法输入，在乘法被接受的下一个周期要置低
+|    input mul_valid, //为高表示输入的数据有效,如果没有新的乘法输入,在乘法被接受的下一个周期要置低
 |    input flush, //为高表示取消乘法
 |    input mulw, //为高表示是 32 位乘法
 |    input [1:0] mul_signed, //2'b11(signed x signed); 2'b10(signed x unsigned); 2'b00(unsigned x unsigned);
@@ -38,7 +38,7 @@ class MUL extends BlackBox with HasBlackBoxInline
 |    input [63:0] multiplicand, //被乘数,就是第一个数
 |    input [63:0] multipiler, //乘数,就是第二个数
 |
-|    output reg mul_ready, //为高表示乘法器准备好，表示可以输入数据
+|    output reg mul_ready, //为高表示乘法器准备好,表示可以输入数据
 |    output reg out_valid, //为高表示乘法器输出的结果有效
 |
 |    output [63:0] result_hi,
@@ -73,7 +73,7 @@ class MUL extends BlackBox with HasBlackBoxInline
 |    // case(cur_state)
 |    //     IDLE:
 |    //     begin
-|    //         if(mul_vaild) nxt_state = BUSY;
+|    //         if(mul_valid) nxt_state = BUSY;
 |    //         else nxt_state = IDLE;
 |    //     end
 |    //     BUSY:
@@ -88,7 +88,7 @@ class MUL extends BlackBox with HasBlackBoxInline
 |    // endcase
 |    if(cur_state == IDLE)
 |    begin
-|        if(mul_vaild) nxt_state = BUSY;
+|        if(mul_valid) nxt_state = BUSY;
 |        else nxt_state = IDLE;
 |    end
 |    else if(cur_state == BUSY)

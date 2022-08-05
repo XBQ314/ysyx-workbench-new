@@ -19,6 +19,7 @@ class CTRL extends Module
 
         val loadflag_ex = Input(Bool())
         val mulstall_req = Input(Bool())
+        val divstall_req = Input(Bool())
 
         val feedflag_ex2id_rs1 = Output(Bool())
         val feedflag_ex2id_rs2 = Output(Bool())
@@ -78,6 +79,7 @@ class CTRL extends Module
     io.feedflag_wb2id_rs1   := Mux(io.wb_enw === 1.U && (io.id_rs1 === io.wb_rd), true.B, false.B)
     io.feedflag_wb2id_rs2   := Mux(io.wb_enw === 1.U && (io.id_rs2 === io.wb_rd), true.B, false.B)
 
+
     when(io.loadflag_ex && (io.feedflag_ex2id_rs1 || io.feedflag_ex2id_rs2))
     {
         io.flush_if2id  := false.B
@@ -91,7 +93,7 @@ class CTRL extends Module
         io.stall_ex2mem := false.B
         io.stall_mem2wb := false.B
     }
-    when(io.mulstall_req)
+    when(io.mulstall_req || io.divstall_req)
     {
         io.stall_ifu    := true.B
         io.stall_if2id  := true.B

@@ -67,6 +67,7 @@ class IDU extends Module
         val jump_flag = Output(Bool()) // 负责探测jal和jalr造成的跳转
         val flush_req = Output(Bool())
         val mul_flag = Output(Bool())
+        val div_flag = Output(Bool())
         val Btype_flag = Output(Bool())
         val Load_flag = Output(Bool())
         val enw = Output(Bool()) // Reg enw
@@ -187,6 +188,7 @@ class IDU extends Module
     io.Wmask := ctrlList(6)
     io.enw := (ctrlList(7) === true.B) && (io.inst(11, 7) =/= 0.U)
 
+    io.div_flag := (ctrlList(1)(9, 8) === "b01".U) && (ctrlList(1)(7, 6) === "b10".U)
     io.mul_flag := (ctrlList(1)(9, 8) === "b00".U) && (ctrlList(1)(7, 6) === "b10".U)
     io.Btype_flag := Mux(ctrlList(0) === "b011".U, true.B, false.B)
     io.Load_flag := Mux(ctrlList(5) === "b000".U, false.B, true.B)

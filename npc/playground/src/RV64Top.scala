@@ -153,6 +153,7 @@ class RV64Top extends Module
     ID2EX0.io.IDclint_mstatus:= CLINT0.io.mstatus_out
     ID2EX0.io.IDclint_mepc  := CLINT0.io.mepc_out
     ID2EX0.io.IDclint_mcause:= CLINT0.io.mcause_out
+    ID2EX0.io.IDdiv_flag    := IDU0.io.div_flag
     ID2EX0.io.IDmul_flag    := IDU0.io.mul_flag
     ID2EX0.io.IDBtype_flag  := IDU0.io.Btype_flag
     ID2EX0.io.IDLoad_flag   := IDU0.io.Load_flag
@@ -170,6 +171,7 @@ class RV64Top extends Module
     ALU0.io.shamt        := ID2EX0.io.EXshamt
     ALU0.io.pc           := ID2EX0.io.EXpc
     ALU0.io.ALUctrl      := ID2EX0.io.EXALUctrl
+    ALU0.io.div_flag     := ID2EX0.io.EXdiv_flag
     ALU0.io.mul_flag     := ID2EX0.io.EXmul_flag
     ALU0.io.Btype_flag   := ID2EX0.io.EXBtype_flag
 
@@ -269,6 +271,7 @@ class RV64Top extends Module
     CTRL0.io.flushreq_ex    := ALU0.io.flush_req
     CTRL0.io.loadflag_ex    := ID2EX0.io.EXLoad_flag
     CTRL0.io.mulstall_req   := ALU0.io.mulstall_req
+    CTRL0.io.divstall_req   := ALU0.io.divstall_req
 
     //top input
     io.pc       := MEM2WB0.io.WBpc
