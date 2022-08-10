@@ -68,7 +68,7 @@ class EX2MEM extends Module
     val MEMpc_reg       = RegEnable(io.EXpc      , 0.U, io.enEX2MEM)
     val MEMinst_reg     = RegEnable(io.EXinst    , 0.U, io.enEX2MEM)
 
-    when(io.flush)
+    when(io.flush && io.enEX2MEM)
     {
         MEMraddr_reg    := 0.U
         MEMwaddr_reg    := 0.U

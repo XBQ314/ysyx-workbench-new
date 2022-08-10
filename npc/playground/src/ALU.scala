@@ -108,6 +108,7 @@ class Muldiv extends Module
 
         val mul_flag = Input(Bool())
         val div_flag = Input(Bool())
+        val div_signed = Input(Bool())
         val out_valid = Output(Bool())
         val out = Output(UInt(64.W))
     })
@@ -147,7 +148,7 @@ class Muldiv extends Module
     DIV0.io.div_valid := div_valid
     DIV0.io.flush := false.B
     DIV0.io.divw := false.B
-    DIV0.io.div_signed := false.B
+    DIV0.io.div_signed := io.div_signed
 
     DIV0.io.dividend := io.in1
     DIV0.io.divisor := io.in2
@@ -185,7 +186,7 @@ class Muldiv extends Module
     {
     is("b00".U){io.out := MUL0.io.result_lo}
     is("b01".U){io.out := DIV0.io.quotient}
-    is("b10".U){io.out := io.in1 % io.in2}
+    is("b10".U){io.out := DIV0.io.remainder}
     }
 }
 
@@ -262,6 +263,7 @@ class ALU extends Module
         val ALUctrl = Input(new ALUctrl())
 
         val div_flag = Input(Bool())
+        val div_signed=Input(Bool())
         val mul_flag = Input(Bool())
         val Btype_flag = Input(Bool())
         val pc_next = Output(UInt(64.W))
@@ -314,6 +316,7 @@ class ALU extends Module
     calcuMD.io.in2 := calcuSrc2.io.out
     calcuMD.io.ctrl := io.ALUctrl.Muldiv_ctrl
     calcuMD.io.div_flag := io.div_flag
+    calcuMD.io.div_signed:= io.div_signed
     calcuMD.io.mul_flag := io.mul_flag
     io.mulstall_req := io.mul_flag && (!calcuMD.io.out_valid)
     io.divstall_req := io.div_flag && (!calcuMD.io.out_valid)

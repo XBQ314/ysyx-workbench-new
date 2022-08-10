@@ -61,7 +61,7 @@ class MEM2WB extends Module
     val WBpc_reg       = RegEnable(io.MEMpc,        0.U, io.enMEM2WB)
     val WBinst_reg     = RegEnable(io.MEMinst,      0.U, io.enMEM2WB)
 
-    when(io.flush)
+    when(io.flush && io.enMEM2WB)
     {
         WBrd_reg        := 0.U
         WBenw_reg       := 0.U

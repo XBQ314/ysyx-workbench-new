@@ -32,8 +32,8 @@ class MEM extends BlackBox with HasBlackBoxInline
 |wire [63:0]rdata_native;
 |always @(*) 
 |begin
-|  pmem_read(raddr, rdata_native);
-|  pmem_write(waddr, wdata, wmask);
+|   pmem_read(raddr, rdata_native);
+|   pmem_write(waddr, wdata, wmask);
 |end
 |
 |wire [63:0] lb_out;

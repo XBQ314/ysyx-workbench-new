@@ -160,5 +160,6 @@ class CSR extends BlackBox with HasBlackBoxInline
 |                 (read_idx == 8'h42)?mcause:'d0;
 |
 |endmodule
+|
                 """.stripMargin)
 }

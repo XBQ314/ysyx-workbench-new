@@ -8,6 +8,8 @@ class CTRL extends Module
         val flushreq_id = Input(Bool())
         val flushreq_ex = Input(Bool())
 
+        val ifu_stall_req = Input(Bool())
+
         val id_rs1 = Input(UInt(5.W))
         val id_rs2 = Input(UInt(5.W))
         val ex_rd  = Input(UInt(5.W))
@@ -34,6 +36,7 @@ class CTRL extends Module
         val stall_ex2mem = Output(Bool())
         val stall_mem2wb = Output(Bool())
 
+        // val flush_icache = Output(Bool())
         val flush_if2id  = Output(Bool())
         val flush_id2ex  = Output(Bool())
         val flush_ex2mem = Output(Bool())
@@ -45,6 +48,7 @@ class CTRL extends Module
     io.stall_ex2mem := false.B
     io.stall_mem2wb := false.B
 
+    // io.flush_icache := false.B
     io.flush_if2id  := false.B
     io.flush_id2ex  := false.B
     io.flush_ex2mem := false.B
@@ -59,12 +63,14 @@ class CTRL extends Module
     // }.else
     when(io.flushreq_ex) // B型指令
     {
+        // io.flush_icache := true.B
         io.flush_if2id  := true.B
         io.flush_id2ex  := true.B
         io.flush_ex2mem := false.B
         io.flush_mem2wb := false.B
     }.elsewhen(io.flushreq_id) // jal与jalr
     {
+        // io.flush_icache := true.B
         io.flush_if2id  := true.B
         io.flush_id2ex  := false.B
         io.flush_ex2mem := false.B
@@ -79,9 +85,10 @@ class CTRL extends Module
     io.feedflag_wb2id_rs1   := Mux(io.wb_enw === 1.U && (io.id_rs1 === io.wb_rd), true.B, false.B)
     io.feedflag_wb2id_rs2   := Mux(io.wb_enw === 1.U && (io.id_rs2 === io.wb_rd), true.B, false.B)
 
-
+    // 当EX阶段运行的访存指令需要前馈给ID时
     when(io.loadflag_ex && (io.feedflag_ex2id_rs1 || io.feedflag_ex2id_rs2))
     {
+        // io.flush_icache := false.B
         io.flush_if2id  := false.B
         io.flush_id2ex  := true.B
         io.flush_ex2mem := false.B
@@ -93,9 +100,20 @@ class CTRL extends Module
         io.stall_ex2mem := false.B
         io.stall_mem2wb := false.B
     }
+
+    // 乘法与除法操作对流水线的暂停
     when(io.mulstall_req || io.divstall_req)
     {
         io.stall_ifu    := true.B
+        io.stall_if2id  := true.B
+        io.stall_id2ex  := true.B
+        io.stall_ex2mem := true.B
+        io.stall_mem2wb := true.B
+    }
+
+    when(io.ifu_stall_req)
+    {
+        io.stall_ifu    := false.B
         io.stall_if2id  := true.B
         io.stall_id2ex  := true.B
         io.stall_ex2mem := true.B

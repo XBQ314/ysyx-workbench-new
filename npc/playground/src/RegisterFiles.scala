@@ -124,5 +124,6 @@ class RegisterFiles extends BlackBox with HasBlackBoxInline
 |// end
 |
 |endmodule
+|
                 """.stripMargin)
 }

@@ -86,6 +86,8 @@ class RV64Top extends Module
     val CTRL0 = Module(new CTRL())
     val CSR0 = Module(new CSR())
     val CLINT0 = Module(new CLINT())
+    val ICACHE_CTRL0 = Module(new CACHE_CTRL())
+    val ICACHE0 = Module(new CACHE())
 
     //IF and ID
     // IFU0.io.regfile_out1 := RegisterFiles0.io.regfile_out1
@@ -101,13 +103,16 @@ class RV64Top extends Module
                          Mux(CLINT0.io.int_jump_flag, CLINT0.io.int_jump_add, 0.U)))
                          // 存在数据冒险的风险，没有解决
     IFU0.io.enIFU     := !CTRL0.io.stall_ifu
-    IFU_DPI0.io.pc    := IFU0.io.pc
+    IFU0.io.data      := ICACHE_CTRL0.io.data2cpu
+    IFU0.io.ready     := ICACHE_CTRL0.io.ready2cpu
+    IFU_DPI0.io.pc    := ICACHE_CTRL0.io.addr2mem
 
     IF2ID0.io.enIF2ID := !CTRL0.io.stall_if2id
     IF2ID0.io.flush   := CTRL0.io.flush_if2id
 
     IF2ID0.io.IFpc    := IFU0.io.pc
-    IF2ID0.io.IFinst  := IFU_DPI0.io.inst
+    // IF2ID0.io.IFinst  := IFU_DPI0.io.inst
+    IF2ID0.io.IFinst  := IFU0.io.inst
 
     IDU0.io.pc   := IF2ID0.io.IDpc
     IDU0.io.inst := IF2ID0.io.IDinst
@@ -115,6 +120,28 @@ class RV64Top extends Module
     IDU0.io.mtvec_out := CSR0.io.mtvec_out
     IDU0.io.mepc_out := CSR0.io.mepc_out
 
+    ICACHE_CTRL0.io.cpu_addr := IFU0.io.pc
+    ICACHE_CTRL0.io.cpu_data := 0.U
+    ICACHE_CTRL0.io.cpu_enw := false.B
+    ICACHE_CTRL0.io.cpu_wmask := 0.U //!!!!
+    ICACHE_CTRL0.io.cpu_valid := IFU0.io.pc2cache_valid
+
+    ICACHE_CTRL0.io.mem_data := IFU_DPI0.io.raw_data
+    ICACHE_CTRL0.io.mem_ready := true.B //!!!!
+
+    ICACHE_CTRL0.io.cache_data := ICACHE0.io.data
+    ICACHE_CTRL0.io.cache_valid := ICACHE0.io.valid
+    ICACHE_CTRL0.io.cache_dirty := ICACHE0.io.dirty
+    ICACHE_CTRL0.io.cache_tag := ICACHE0.io.tag
+
+    ICACHE0.io.CLK := clock
+    ICACHE0.io.index := ICACHE_CTRL0.io.index2cache
+    ICACHE0.io.enw := ICACHE_CTRL0.io.enw2cache
+    ICACHE0.io.tag_enw := ICACHE_CTRL0.io.tagenw2cache
+    ICACHE0.io.wdata := ICACHE_CTRL0.io.wdata2cache
+    ICACHE0.io.in_valid := ICACHE_CTRL0.io.valid2cache
+    ICACHE0.io.in_dirty := ICACHE_CTRL0.io.dirty2cache
+    ICACHE0.io.in_tag := ICACHE_CTRL0.io.tag2cache
     //ID and EX
     ID2EX0.io.enID2EX   := !CTRL0.io.stall_id2ex
     ID2EX0.io.flush     := CTRL0.io.flush_id2ex
@@ -154,6 +181,7 @@ class RV64Top extends Module
     ID2EX0.io.IDclint_mepc  := CLINT0.io.mepc_out
     ID2EX0.io.IDclint_mcause:= CLINT0.io.mcause_out
     ID2EX0.io.IDdiv_flag    := IDU0.io.div_flag
+    ID2EX0.io.IDdiv_signed  := IDU0.io.div_signed
     ID2EX0.io.IDmul_flag    := IDU0.io.mul_flag
     ID2EX0.io.IDBtype_flag  := IDU0.io.Btype_flag
     ID2EX0.io.IDLoad_flag   := IDU0.io.Load_flag
@@ -172,6 +200,7 @@ class RV64Top extends Module
     ALU0.io.pc           := ID2EX0.io.EXpc
     ALU0.io.ALUctrl      := ID2EX0.io.EXALUctrl
     ALU0.io.div_flag     := ID2EX0.io.EXdiv_flag
+    ALU0.io.div_signed   := ID2EX0.io.EXdiv_signed
     ALU0.io.mul_flag     := ID2EX0.io.EXmul_flag
     ALU0.io.Btype_flag   := ID2EX0.io.EXBtype_flag
 
@@ -219,6 +248,7 @@ class RV64Top extends Module
     MEM0.io.waddr    := EX2MEM0.io.MEMwaddr
     MEM0.io.wdata    := EX2MEM0.io.MEMwdata
     MEM0.io.wmask    := EX2MEM0.io.MEMwmask
+    // MEM0.io.enMEM    := MEM2WB0.io.enMEM2WB
     MEM0.io.LOADctrl := EX2MEM0.io.MEMLOADctrl
 
     //MEM and WB
@@ -236,8 +266,8 @@ class RV64Top extends Module
     MEM2WB0.io.MEMwaddr    := EX2MEM0.io.MEMwaddr
     MEM2WB0.io.MEMclint_enw:= EX2MEM0.io.MEMclint_enw
     MEM2WB0.io.MEMclint_mstatus:= EX2MEM0.io.MEMclint_mstatus
-    MEM2WB0.io.MEMclint_mepc  :=  EX2MEM0.io.MEMclint_mepc  
-    MEM2WB0.io.MEMclint_mcause:=  EX2MEM0.io.MEMclint_mcause
+    MEM2WB0.io.MEMclint_mepc   :=  EX2MEM0.io.MEMclint_mepc  
+    MEM2WB0.io.MEMclint_mcause :=  EX2MEM0.io.MEMclint_mcause
     MEM2WB0.io.MEMLoad_flag:= EX2MEM0.io.MEMLoad_flag
     MEM2WB0.io.MEMpc       := EX2MEM0.io.MEMpc
     MEM2WB0.io.MEMinst     := EX2MEM0.io.MEMinst
@@ -248,15 +278,13 @@ class RV64Top extends Module
     RegisterFiles0.io.in_data   := MEM2WB0.io.WBwrb2reg
     
     CSR0.io.write_idx := MEM2WB0.io.WBcsr_rd
-    CSR0.io.enw     := MEM2WB0.io.WBcsr_enw
+    CSR0.io.enw     := (MEM2WB0.io.WBcsr_enw === 1.U) && !CTRL0.io.stall_mem2wb
     CSR0.io.in_data := MEM2WB0.io.WBwrb2csr
 
-    CSR0.io.clint_enw   := MEM2WB0.io.WBclint_enw
+    CSR0.io.clint_enw   := (MEM2WB0.io.WBclint_enw === 1.U) && !CTRL0.io.stall_mem2wb
     CSR0.io.mstatus_in  := MEM2WB0.io.WBclint_mstatus
     CSR0.io.mepc_in     := MEM2WB0.io.WBclint_mepc
     CSR0.io.mcause_in   := MEM2WB0.io.WBclint_mcause
-    // CSR0.io.ecall_mepc   := MEM2WB0.io.WBpc
-    // CSR0.io.ecall_mcause := "hb".U
     
     //CTRL
     CTRL0.io.id_rs1         := IDU0.io.rs1
@@ -269,6 +297,7 @@ class RV64Top extends Module
     CTRL0.io.wb_enw         := MEM2WB0.io.WBenw
     CTRL0.io.flushreq_id    := IDU0.io.flush_req || CLINT0.io.int_jump_flag
     CTRL0.io.flushreq_ex    := ALU0.io.flush_req
+    CTRL0.io.ifu_stall_req  := IFU0.io.ifu_stall_req
     CTRL0.io.loadflag_ex    := ID2EX0.io.EXLoad_flag
     CTRL0.io.mulstall_req   := ALU0.io.mulstall_req
     CTRL0.io.divstall_req   := ALU0.io.divstall_req

@@ -1,3 +1,7 @@
+#include "verilated.h"
+#include "verilated_vcd_c.h"
+#include "verilated_dpi.h"
+#include "VRV64Top.h"
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
@@ -16,7 +20,7 @@
     // 0x00570713, // addi a4,a4,5
     // 0x00100073, // ebreak
 static char *img_file = NULL;
-
+extern VRV64Top* top;
 // 0x00009117, //auipc	sp,0x9
 // 0x00000513, // li	a0,0
 // 0x00258593, // addi a1,a1,2
@@ -31,14 +35,18 @@ static char *img_file = NULL;
 // 0x00100073, // ebreak
 static const unsigned int img[] = 
 {
-0x00150513, // addi a0,a0,1
-0x00150513, // addi a0,a0,1
-0x00500793, // li	a5,5
-0x01d79793, // slli	a5,a5,0x1d
-0x3ea78c23, // sb	a0,1016(a5)
-0x00150513, // addi a0,a0,1
-0x00150513, // addi a0,a0,1
-0x00150513, // addi a0,a0,1
+// 0x00150513, // addi a0,a0,1
+// 0x00150513, // addi a0,a0,1
+// 0x00500793, // li	a5,5
+// 0x01d79793, // slli	a5,a5,0x1d
+// 0x3ea78c23, // sb	a0,1016(a5)
+// 0x00150513, // addi a0,a0,1
+// 0x00150513, // addi a0,a0,1
+// 0x00150513, // addi a0,a0,1
+0x00258593, // addi a1,a1,2
+0x00360613, // addi a2,a2,3
+0x00468693, // addi a3,a3,4
+0x00570713, // addi a4,a4,5
 0x00100073, // ebreak
 };
 
@@ -107,7 +115,7 @@ extern "C" void pmem_write(long long waddr, long long wdata, uint8_t wmask) // S
 // `wmask`中每比特表示`wdata`中1个字节的掩码,
 // 如`wmask = 0x3`代表只写入最低2个字节, 内存中的其它字节保持不变
     // assert(waddr == (waddr &(~0x7ull)));
-    if(waddr == 0xa00003f8) // 串口device
+    if(waddr == 0xa00003f8 && top->io_enMEM2WB) // 串口device
     {
         // printf("111111111111111111111111111111111111111111111111111\n");
         mmio_flag = true;
@@ -127,12 +135,16 @@ extern "C" void pmem_write(long long waddr, long long wdata, uint8_t wmask) // S
         switch(wmask)
         { 
             case 0x01:  
+                // printf("wmask:0x01, wdata:0x%llx\n", wdata);
                 *(uint8_t   *)(waddr + mem - 0x80000000) = wdata;break;// sb
             case 0x03:   
+                // printf("wmask:0x03, wdata:0x%llx\n", wdata);
                 *(uint16_t  *)(waddr + mem - 0x80000000) = wdata;break;// sh
             case 0x0f:
+                // printf("wmask:0x0f, wdata:0x%llx\n", wdata);
                 *(uint32_t  *)(waddr + mem - 0x80000000) = wdata;break;// sw
             case 0xff:
+                // printf("wmask:0xff, wdata:0x%llx\n", wdata);
                 *(uint64_t  *)(waddr + mem - 0x80000000) = wdata;break;// sd
         }
         return;

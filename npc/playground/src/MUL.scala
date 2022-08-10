@@ -184,5 +184,6 @@ class MUL extends BlackBox with HasBlackBoxInline
 |assign result_lo = result[63:0];
 |
 |endmodule
+|
                 """.stripMargin)
 }

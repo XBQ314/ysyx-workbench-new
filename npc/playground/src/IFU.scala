@@ -14,24 +14,92 @@ class IFU extends Module
         val jump_flag = Input(Bool())
         val pc_next = Input(UInt(64.W))
         val enIFU = Input(Bool())
+        val data = Input(UInt(64.W))
+        val ready = Input(Bool())
 
+        val pc2cache_valid = Output(Bool())
+        val ifu_stall_req = Output(Bool())
         val pc = Output(UInt(64.W))
+        val inst = Output(UInt(32.W))
     })
+    // val UPDATE_PC = "b001".U
+    val FETCH = "b000".U
+    val DONE = "b011".U
+    val nxt_state = Wire(UInt(3.W))
+    val cur_state = RegNext(nxt_state, "b000".U)
     val regPC = RegInit(("h80000000".U(64.W)))
-    // val regPC = RegEnable(0.U, "h80000000".U(64.W), io.enIFU)
+    val pc_update = Wire(Bool())
+
+    nxt_state := cur_state
+    io.pc2cache_valid := false.B
+    io.ifu_stall_req := false.B
+    io.inst := Mux(io.pc(2), io.data(63, 32), io.data(31, 0))
+    io.pc := regPC
+    pc_update := false.B
     
-    when(io.jump_flag && io.enIFU)
+    when(io.jump_flag && io.enIFU && pc_update)
     {
         regPC := io.pc_next
-    }.elsewhen(!io.jump_flag && io.enIFU)
+    }.elsewhen(!io.jump_flag && io.enIFU && pc_update)
     {
         regPC := regPC + 4.U
     }.otherwise
     {
         regPC := regPC
     }
-    io.pc := regPC
+
+    when(cur_state === FETCH)
+    {
+        io.pc2cache_valid := true.B
+        io.ifu_stall_req := true.B
+        io.pc := regPC
+        when(io.ready)
+        {
+            nxt_state := DONE
+        }.otherwise
+        {
+            nxt_state := FETCH
+        }
+    }.elsewhen(cur_state === DONE)
+    {
+        io.pc2cache_valid := false.B
+        io.ifu_stall_req := false.B
+        when(io.enIFU)
+        {
+            pc_update := true.B
+            nxt_state := FETCH
+        }
+    }
+    // }.elsewhen(cur_state === UPDATE_PC)
+    // {
+    //     nxt_state := FETCH
+    // }
 }
+// class IFU extends Module
+// {
+//     val io = IO(new Bundle
+//     {
+//         val jump_flag = Input(Bool())
+//         val pc_next = Input(UInt(64.W))
+//         val enIFU = Input(Bool())
+
+//         val pc = Output(UInt(64.W))
+//     })
+//     val regPC = RegInit(("h80000000".U(64.W)))
+//     io.fetch_valid := fetch_valid_reg
+    
+//     when(io.jump_flag && io.enIFU)
+//     {
+//         regPC := io.pc_next
+//     }.elsewhen(!io.jump_flag && io.enIFU)
+//     {
+//         regPC := regPC + 4.U
+//     }.otherwise
+//     {
+//         regPC := regPC
+//     }
+//     io.pc := regPC
+// }
 // class IFU extends Module
 // {
 //     val io = IO(new Bundle

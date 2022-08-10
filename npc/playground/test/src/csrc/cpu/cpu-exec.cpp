@@ -10,7 +10,7 @@
 #include "utils.h"
 #include "difftest.h"
 
-#define CONFIG_ITRACE 1
+#define CONFIG_ITRACE 0
 #define CONFIG_DIFFTEST 1
 #define CONFIG_WATCHPOINT 0
 
@@ -91,16 +91,10 @@ static void trace_and_difftest()
             // printf("npc pc:%lx, nemu pc:%lx\n", npc_regs.pc, nemu_ref_regs.pc);
             difftest_check(&nemu_ref_regs);
         }
-        // printf("npc pc:%lx\n", npc_regs.pc);
-        //     difftest_exec(1);
-        //     struct npc_reg_struct nemu_ref_regs;
-        //     difftest_regcpy(&nemu_ref_regs, 0); // 这句话获取了nemu模拟器的状态，并赋值给nemu_ref_regs
-            
-        //     difftest_check(&nemu_ref_regs);
     }
 #endif
 #if CONFIG_ITRACE
-    if(top->io_inst != 0)
+    if(top->io_inst != 0 && top->io_enMEM2WB)
     {
         char inst_str[128];
         disassemble(inst_str, 128, NPC_PC, (uint8_t *)&(top->io_inst), 4);
@@ -132,22 +126,25 @@ static void execute(uint64_t n)
         // struct npc_reg_struct nemu_ref_regs;
         // difftest_regcpy(&nemu_ref_regs, 0);
         // printf("before npc_ex");
-        // printf("NPC pc:0x%lx, NEMU PC:0x%lx\n", NPC_PC, nemu_ref_regs.pc);
+        // printf("NPC pc:0x%lx, NEMU PC:0x%lx ", NPC_PC, nemu_ref_regs.pc);
         // printf("io_enMEM2WB:%d\n", top->io_enMEM2WB);
         exec_once();
         // difftest_regcpy(&nemu_ref_regs, 0);
         // printf("before diff");
-        // printf("NPC pc:0x%lx, NEMU PC:0x%lx\n", NPC_PC, nemu_ref_regs.pc);
-        // printf("io_enMEM2WB:%d ", top->io_enMEM2WB);
+        // printf("NPC pc:0x%lx, NEMU PC:0x%lx ", NPC_PC, nemu_ref_regs.pc);
+        // printf("io_enMEM2WB:%d\n", top->io_enMEM2WB);
         trace_and_difftest();
-        // NPC_PC等于skipdiff_pc则说明在这个阶段，NPC和nemu都刚执行过了需要跳过的指令的上一条，所以可以让下一次nemu跳过difftest，直接拷贝NPC执行了之后的结果
-        if(NPC_PC == skipdiff_pc) skip_difftest = true; 
+        // NPC_PC等于skipdiff_pc则说明在这个阶段，NPC和nemu都刚执行过了需要跳过的指令的上一条
+        // 所以可以让下一次nemu跳过difftest，直接拷贝NPC执行了之后的结果
+        // 注意要避免pc等于零的情况
+        if((NPC_PC == skipdiff_pc) && (skipdiff_pc != 0)) skip_difftest = true; 
         if(top->io_inst == 0x100073) // ebreak
         {
             npc_state.state = NPC_END;
             single_cycle();
 
 #if CONFIG_DIFFTEST
+            difftest_exec(1); // 加上这个就这样就可以显示nemu的trap了
             difftest_exec(1); // 加上这个就这样就可以显示nemu的trap了
 #endif
         }

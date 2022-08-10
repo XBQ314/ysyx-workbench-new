@@ -176,5 +176,6 @@ class DIV extends BlackBox with HasBlackBoxInline
 |assign quotient = quotient_sign_reg?~quotient_reg+1'b1:quotient_reg;
 |assign remainder = remainder_sign_reg?~remainder_reg+1'b1:remainder_reg;
 |endmodule
+|
                 """.stripMargin)
 }
