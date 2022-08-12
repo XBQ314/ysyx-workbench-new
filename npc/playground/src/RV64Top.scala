@@ -82,12 +82,17 @@ class RV64Top extends Module
     val RegisterFiles0 = Module(new RegisterFiles())
     val EX2MEM0 = Module(new EX2MEM())
     val MEM0 = Module(new MEM())
+    val MEMCTRL0 = Module(new MEMCTRL())
+    val MEM_DPI0 = Module(new MEM_DPI())
+    val LOADUNIT0 = Module(new LOADUNIT())
     val MEM2WB0 = Module(new MEM2WB())
     val CTRL0 = Module(new CTRL())
     val CSR0 = Module(new CSR())
     val CLINT0 = Module(new CLINT())
     val ICACHE_CTRL0 = Module(new CACHE_CTRL())
-    val ICACHE0 = Module(new CACHE())
+    val ICACHE0 = Module(new ICACHE())
+    val DCACHE_CTRL0 = Module(new DCACHE_CTRL())
+    val DCACHE0 = Module(new DCACHE())
 
     //IF and ID
     // IFU0.io.regfile_out1 := RegisterFiles0.io.regfile_out1
@@ -244,12 +249,52 @@ class RV64Top extends Module
     EX2MEM0.io.EXpc       := ID2EX0.io.EXpc
     EX2MEM0.io.EXinst     := ID2EX0.io.EXinst
 
-    MEM0.io.raddr    := EX2MEM0.io.MEMraddr
-    MEM0.io.waddr    := EX2MEM0.io.MEMwaddr
-    MEM0.io.wdata    := EX2MEM0.io.MEMwdata
-    MEM0.io.wmask    := EX2MEM0.io.MEMwmask
+    // MEM0.io.raddr    := EX2MEM0.io.MEMraddr
+    // MEM0.io.waddr    := EX2MEM0.io.MEMwaddr
+    // MEM0.io.wdata    := EX2MEM0.io.MEMwdata
+    // MEM0.io.wmask    := EX2MEM0.io.MEMwmask
     // MEM0.io.enMEM    := MEM2WB0.io.enMEM2WB
-    MEM0.io.LOADctrl := EX2MEM0.io.MEMLOADctrl
+    // MEM0.io.LOADctrl := EX2MEM0.io.MEMLOADctrl
+
+    DCACHE_CTRL0.io.cpu_addr := EX2MEM0.io.MEMraddr // raddr is the same with waddr
+    DCACHE_CTRL0.io.cpu_data := EX2MEM0.io.MEMwdata
+    DCACHE_CTRL0.io.cpu_enw := (EX2MEM0.io.MEMwmask =/= "h00".U(8.W))
+    DCACHE_CTRL0.io.cpu_wmask := EX2MEM0.io.MEMwmask
+    DCACHE_CTRL0.io.cpu_valid := MEMCTRL0.io.dcache_valid
+    DCACHE_CTRL0.io.uncached_flag := MEMCTRL0.io.uncached_flag
+
+    DCACHE_CTRL0.io.mem_data := MEM_DPI0.io.rdata
+    DCACHE_CTRL0.io.mem_ready := true.B //!!!!!
+
+    DCACHE_CTRL0.io.cache_data := DCACHE0.io.data
+    DCACHE_CTRL0.io.cache_valid := DCACHE0.io.valid
+    DCACHE_CTRL0.io.cache_dirty := DCACHE0.io.dirty
+    DCACHE_CTRL0.io.cache_tag := DCACHE0.io.tag
+
+    MEMCTRL0.io.loadstore_flag := ((EX2MEM0.io.MEMLOADctrl =/= "b000".U(3.W)) || (EX2MEM0.io.MEMwmask =/= "h00".U(8.W)))
+    MEMCTRL0.io.dcache_ready := DCACHE_CTRL0.io.ready2cpu
+    MEMCTRL0.io.pc := EX2MEM0.io.MEMpc
+    MEMCTRL0.io.addr := EX2MEM0.io.MEMraddr  
+
+    DCACHE0.io.CLK      := clock
+    DCACHE0.io.index    := DCACHE_CTRL0.io.index2cache
+    DCACHE0.io.enw      := DCACHE_CTRL0.io.enw2cache
+    DCACHE0.io.tag_enw  := DCACHE_CTRL0.io.tagenw2cache
+    DCACHE0.io.wdata    := DCACHE_CTRL0.io.wdata2cache
+    DCACHE0.io.wmask    := DCACHE_CTRL0.io.wmask2cache
+    DCACHE0.io.in_valid := DCACHE_CTRL0.io.valid2cache
+    DCACHE0.io.in_dirty := DCACHE_CTRL0.io.dirty2cache
+    DCACHE0.io.in_tag   := DCACHE_CTRL0.io.tag2cache
+
+    MEM_DPI0.io.raddr := DCACHE_CTRL0.io.addr2mem
+    MEM_DPI0.io.waddr := DCACHE_CTRL0.io.addr2mem
+    MEM_DPI0.io.wdata := DCACHE_CTRL0.io.data2mem
+    MEM_DPI0.io.wmask := DCACHE_CTRL0.io.wmask2mem
+
+    LOADUNIT0.io.raddr := EX2MEM0.io.MEMraddr
+    LOADUNIT0.io.rdata_native := DCACHE_CTRL0.io.data2cpu
+    LOADUNIT0.io.LOADctrl := EX2MEM0.io.MEMLOADctrl
+
 
     //MEM and WB
     MEM2WB0.io.enMEM2WB    := !CTRL0.io.stall_mem2wb
@@ -258,10 +303,14 @@ class RV64Top extends Module
     MEM2WB0.io.MEMrd       := EX2MEM0.io.MEMrd
     MEM2WB0.io.MEMenw      := EX2MEM0.io.MEMenw
     MEM2WB0.io.MEMcsr_enw  := EX2MEM0.io.MEMcsr_enw
-    MEM2WB0.io.MEMwrb2reg  := Mux(MEM2WB0.io.MEMLoad_flag, MEM0.io.rdata, EX2MEM0.io.MEMwrb2reg)
+    // MEM2WB0.io.MEMwrb2reg  := Mux(MEM2WB0.io.MEMLoad_flag, MEM0.io.rdata, EX2MEM0.io.MEMwrb2reg)
+    MEM2WB0.io.MEMwrb2reg  := Mux(MEM2WB0.io.MEMLoad_flag, LOADUNIT0.io.rdata, EX2MEM0.io.MEMwrb2reg)
+    
     MEM2WB0.io.MEMcsr_rd   := EX2MEM0.io.MEMcsr_rd
     MEM2WB0.io.MEMwrb2csr  := EX2MEM0.io.MEMwrb2csr
-    MEM2WB0.io.MEMmemout   := MEM0.io.rdata
+    // MEM2WB0.io.MEMmemout   := MEM0.io.rdata
+    MEM2WB0.io.MEMmemout   := LOADUNIT0.io.rdata // !!!
+
     MEM2WB0.io.MEMLOADctrl := EX2MEM0.io.MEMLOADctrl
     MEM2WB0.io.MEMwaddr    := EX2MEM0.io.MEMwaddr
     MEM2WB0.io.MEMclint_enw:= EX2MEM0.io.MEMclint_enw
@@ -298,6 +347,7 @@ class RV64Top extends Module
     CTRL0.io.flushreq_id    := IDU0.io.flush_req || CLINT0.io.int_jump_flag
     CTRL0.io.flushreq_ex    := ALU0.io.flush_req
     CTRL0.io.ifu_stall_req  := IFU0.io.ifu_stall_req
+    CTRL0.io.dcache_stall_req  := MEMCTRL0.io.memstall_req
     CTRL0.io.loadflag_ex    := ID2EX0.io.EXLoad_flag
     CTRL0.io.mulstall_req   := ALU0.io.mulstall_req
     CTRL0.io.divstall_req   := ALU0.io.divstall_req

@@ -9,6 +9,7 @@ class CTRL extends Module
         val flushreq_ex = Input(Bool())
 
         val ifu_stall_req = Input(Bool())
+        val dcache_stall_req = Input(Bool())
 
         val id_rs1 = Input(UInt(5.W))
         val id_rs2 = Input(UInt(5.W))
@@ -114,6 +115,15 @@ class CTRL extends Module
     when(io.ifu_stall_req)
     {
         io.stall_ifu    := false.B
+        io.stall_if2id  := true.B
+        io.stall_id2ex  := true.B
+        io.stall_ex2mem := true.B
+        io.stall_mem2wb := true.B
+    }
+
+    when(io.dcache_stall_req)
+    {
+        io.stall_ifu    := true.B
         io.stall_if2id  := true.B
         io.stall_id2ex  := true.B
         io.stall_ex2mem := true.B

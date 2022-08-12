@@ -20,8 +20,8 @@ static void *lut[128] = {
   [AM_INPUT_KEYBRD] = __am_input_keybrd,
 };
 
-// static void fail(void *buf) { panic("access nonexist register"); }
-static void fail(void *buf) { }
+static void fail(void *buf) { panic("access nonexist register"); }
+// static void fail(void *buf) { }
 
 bool ioe_init() 
 {

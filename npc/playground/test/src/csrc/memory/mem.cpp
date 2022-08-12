@@ -115,7 +115,8 @@ extern "C" void pmem_write(long long waddr, long long wdata, uint8_t wmask) // S
 // `wmask`中每比特表示`wdata`中1个字节的掩码,
 // 如`wmask = 0x3`代表只写入最低2个字节, 内存中的其它字节保持不变
     // assert(waddr == (waddr &(~0x7ull)));
-    if(waddr == 0xa00003f8 && top->io_enMEM2WB) // 串口device
+    // if(waddr == 0xa00003f8 && top->io_enMEM2WB) // 串口device
+    if(waddr == 0xa00003f8) // 串口device
     {
         // printf("111111111111111111111111111111111111111111111111111\n");
         mmio_flag = true;
@@ -128,6 +129,11 @@ extern "C" void pmem_write(long long waddr, long long wdata, uint8_t wmask) // S
     if(waddr < 0x80000000 || waddr >= 0x88000000)return;
     else
     {
+        // if(*(uint64_t *)(0x8009dfb8 + mem - 0x80000000) != 0)
+        // {
+        //     printf("0x8009dfb8:0x%llx\n", *(uint64_t *)(0x8009dfb8 + mem - 0x80000000));
+        //     // assert(0);
+        // }
         if(wmask == 0x01 || wmask == 0x03 || wmask == 0x0f || wmask == 0xff)
         {
             // printf("write to waddr:0x%llx, wdata:0x%llx, wmask:0x%x\n", waddr, wdata, wmask);
