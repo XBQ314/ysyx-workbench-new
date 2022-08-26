@@ -1,6 +1,9 @@
 #ifndef MEM_H_
 #define MEM_H_
 #include <stdint.h>
+#include "axi4.hpp"
+#include "axi4_slave.hpp"
+#include "axi4_mem.hpp"
 
 unsigned int get_inst(unsigned long addr);
 unsigned int mem_read(unsigned long addr, int len);

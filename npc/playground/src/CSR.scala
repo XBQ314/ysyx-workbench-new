@@ -46,7 +46,7 @@ import chisel3.util._
 //     }
 // }
 
-class CSR extends BlackBox with HasBlackBoxInline
+class ysyx_22040154_CSR extends BlackBox with HasBlackBoxInline
 {
     val io = IO(new Bundle
     {
@@ -74,7 +74,7 @@ class CSR extends BlackBox with HasBlackBoxInline
     })
     setInline("CSR.v",
                 """
-|module CSR
+|module ysyx_22040154_CSR
 |(
 |    input clock,
 |    input reset,

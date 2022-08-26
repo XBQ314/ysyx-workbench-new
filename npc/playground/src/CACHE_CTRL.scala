@@ -132,6 +132,7 @@ class CACHE_CTRL extends Module
         nxt_state := IDLE
     }.elsewhen(cur_state === ALLOCATE_L64)
     {
+        io.valid2mem := true.B
         io.addr2mem := Cat(io.cpu_addr(63, 4), "b0000".U(4.W))
         when(io.mem_ready)
         {
@@ -144,6 +145,7 @@ class CACHE_CTRL extends Module
         }
     }.elsewhen(cur_state === ALLOCATE_H64)
     {
+        io.valid2mem := true.B
         io.addr2mem := Cat(io.cpu_addr(63, 4), "b1000".U(4.W))
         when(io.mem_ready)
         {

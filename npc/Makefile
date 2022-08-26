@@ -28,7 +28,7 @@ $(SRC_AUTO_BIND): $(NXDC_FILES)
 	python $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
 
 # 源文件
-MODULENAME = RV64Top
+MODULENAME = ysyx_22040154_RV64Top
 TOPNAME = FlyingLed
 VSRCS_SIM += $(shell find $(abspath ./build/chisel_dir) -name "*.v")
 VSRCS_NVBOARD += $(VSRCS_SIM)

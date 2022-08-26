@@ -1,64 +1,6 @@
 import chisel3._
 import chisel3.util._
-
-// class RV64Top extends Module
-// {
-//     val io = IO(new Bundle
-//     {
-//         val pc = Output(UInt(64.W))
-//         val inst = Output(UInt(32.W))
-
-//         // val alu_out = Output(UInt(64.W))
-//     })
-
-//     val IFU1 = Module(new IFU())
-//     val IFU_DPI1 = Module(new IFU_DPI())
-//     val IDU1 = Module(new IDU())
-//     val ALU1 = Module(new ALU())
-//     val RegisterFiles1 = Module(new RegisterFiles())
-//     val MEM1 = Module(new MEM())
-
-//     //IFU input
-//     IFU1.io.regfile_out1 := RegisterFiles1.io.regfile_out1
-//     IFU1.io.IFUctrl := IDU1.io.IFUctrl
-//     IFU1.io.ALUout_data := ALU1.io.ALUout_data(0)
-//     IFU1.io.imm := IDU1.io.imm
-//     IFU1.io.regfile_out1 := RegisterFiles1.io.regfile_out1
-//     //IFU_DPI input
-//     IFU_DPI1.io.pc := IFU1.io.pc
-    
-//     //IDU input
-//     IDU1.io.inst := IFU_DPI1.io.inst
-
-//     //ALU input
-//     ALU1.io.regfile_out1 := RegisterFiles1.io.regfile_out1
-//     ALU1.io.regfile_out2 := RegisterFiles1.io.regfile_out2
-//     ALU1.io.imm := IDU1.io.imm
-//     ALU1.io.shamt := IDU1.io.shamt
-//     ALU1.io.pc := IFU1.io.pc
-//     ALU1.io.ALUctrl := IDU1.io.ALUctrl
-//     ALU1.io.pc := IFU1.io.pc
-
-//     //RegFile input
-//     RegisterFiles1.io.clock := clock
-//     RegisterFiles1.io.reset := reset
-//     RegisterFiles1.io.read1_idx := IDU1.io.rs1
-//     RegisterFiles1.io.read2_idx := IDU1.io.rs2
-//     RegisterFiles1.io.write_idx := IDU1.io.rd
-//     RegisterFiles1.io.enw := IDU1.io.enw
-//     RegisterFiles1.io.in_data := Mux(IDU1.io.LOADctrl === "b000".U, ALU1.io.ALUout_data, MEM1.io.rdata)
-
-//     //MEM input
-//     MEM1.io.raddr := ALU1.io.ALUout_data
-//     MEM1.io.waddr := ALU1.io.ALUout_data
-//     MEM1.io.wdata := RegisterFiles1.io.regfile_out2
-//     MEM1.io.wmask := IDU1.io.Wmask
-//     MEM1.io.LOADctrl := IDU1.io.LOADctrl
-
-//     //top input
-//     io.pc := IFU1.io.pc
-//     io.inst := IFU_DPI1.io.inst
-// }
+import xbqpackage._
 
 // pipline
 class RV64Top extends Module
@@ -70,29 +12,155 @@ class RV64Top extends Module
 
         val mem_pc = Output(UInt(64.W))
         val enMEM2WB = Output(Bool())
-        // val skip_diff = Output(UInt(1.W))
-        // val alu_out = Output(UInt(64.W))
+
+        // // Advanced eXtensible Interface
+        // val axi_aw_ready_i = Input(UInt(1.W))
+        // val axi_aw_valid_o = Output(UInt(1.W))
+        // val axi_aw_addr_o = Output(UInt(32.W))
+        // val axi_aw_prot_o = Output(UInt(3.W))
+        // val axi_aw_id_o = Output(UInt(4.W))
+        // val axi_aw_user_o = Output(UInt(1.W))
+        // val axi_aw_len_o = Output(UInt(8.W))
+        // val axi_aw_size_o = Output(UInt(3.W))
+        // val axi_aw_burst_o = Output(UInt(2.W))
+        // val axi_aw_lock_o = Output(UInt(1.W))
+        // val axi_aw_cache_o = Output(UInt(4.W))
+        // val axi_aw_qos_o = Output(UInt(4.W))
+        // val axi_aw_region_o = Output(UInt(4.W))
+
+
+        // val axi_w_ready_i = Input(UInt(1.W))
+        // val axi_w_valid_o = Output(UInt(1.W))
+        // val axi_w_data_o = Output(UInt(64.W))
+        // val axi_w_strb_o = Output(UInt(8.W))
+        // val axi_w_last_o = Output(UInt(1.W))
+        // val axi_w_user_o = Output(UInt(1.W))
+
+
+        // val axi_b_ready_o = Output(UInt(1.W)) 
+        // val axi_b_valid_i = Input(UInt(1.W))
+        // val axi_b_resp_i = Input(UInt(2.W))
+        // val axi_b_id_i = Input(UInt(4.W))
+        // val axi_b_user_i = Input(UInt(1.W))
+
+
+        // val axi_ar_ready_i = Input(UInt(1.W))
+        // val axi_ar_valid_o = Output(UInt(1.W))
+        // val axi_ar_addr_o = Output(UInt(32.W))
+        // val axi_ar_prot_o = Output(UInt(3.W))
+        // val axi_ar_id_o = Output(UInt(4.W))
+        // val axi_ar_user_o = Output(UInt(1.W))
+        // val axi_ar_len_o = Output(UInt(8.W))
+        // val axi_ar_size_o = Output(UInt(3.W))
+        // val axi_ar_burst_o = Output(UInt(2.W))
+        // val axi_ar_lock_o = Output(UInt(1.W))
+        // val axi_ar_cache_o = Output(UInt(4.W))
+        // val axi_ar_qos_o = Output(UInt(4.W))
+        // val axi_ar_region_o = Output(UInt(4.W))
+
+
+        // val axi_r_ready_o = Output(UInt(1.W))
+        // val axi_r_valid_i = Input(UInt(1.W))
+        // val axi_r_resp_i = Input(UInt(2.W))
+        // val axi_r_data_i = Input(UInt(64.W))
+        // val axi_r_last_i = Input(UInt(1.W))
+        // val axi_r_id_i = Input(UInt(4.W))
+        // val axi_r_user_i = Input(UInt(1.W))
+        
+        // SOC io_interrupt
+        val interrupt = Input(UInt(1.W))
+
+        // SOC Interface Master
+        val master_awready =    Input(UInt(1.W))
+        val master_awvalid =    Output(UInt(1.W))
+        val master_awaddr =     Output(UInt(32.W)) 
+        val master_awid =       Output(UInt(4.W))
+        val master_awlen =      Output(UInt(8.W))
+        val master_awsize =     Output(UInt(3.W))
+        val master_awburst =    Output(UInt(2.W))
+
+        val master_wready =     Input(UInt(1.W))
+        val master_wvalid =     Output(UInt(1.W))
+        val master_wdata =      Output(UInt(64.W))
+        val master_wstrb =      Output(UInt(8.W))
+        val master_wlast =      Output(UInt(1.W))
+
+        val master_bready =     Output(UInt(1.W)) 
+        val master_bvalid =     Input(UInt(1.W))
+        val master_bresp =      Input(UInt(2.W))
+        val master_bid =        Input(UInt(4.W))
+
+        val master_arready =    Input(UInt(1.W))
+        val master_arvalid =    Output(UInt(1.W))
+        val master_araddr =     Output(UInt(32.W))
+        val master_arid =       Output(UInt(4.W))   
+        val master_arlen =      Output(UInt(8.W))
+        val master_arsize =     Output(UInt(3.W))
+        val master_arburst =    Output(UInt(2.W))
+
+        val master_rready =     Output(UInt(1.W)) 
+        val master_rvalid =     Input(UInt(1.W))
+        val master_rresp =      Input(UInt(2.W))
+        val master_rdata =      Input(UInt(64.W))
+        val master_rlast =      Input(UInt(1.W))
+        val master_rid =        Input(UInt(4.W))
+
+        // SOC Interface Slave   
+        val slave_awready    = Output(UInt(1.W))
+        val slave_awvalid    = Input(UInt(1.W))
+        val slave_awaddr     = Input(UInt(32.W)) 
+        val slave_awid       = Input(UInt(4.W))   
+        val slave_awlen      = Input(UInt(8.W))  
+        val slave_awsize     = Input(UInt(3.W)) 
+        val slave_awburst    = Input(UInt(2.W))
+
+        val slave_wready     = Output(UInt(1.W))
+        val slave_wvalid     = Input(UInt(1.W))
+        val slave_wdata      = Input(UInt(64.W))  
+        val slave_wstrb      = Input(UInt(8.W)) 
+        val slave_wlast      = Input(UInt(1.W))  
+
+        val slave_bready     = Input(UInt(1.W)) 
+        val slave_bvalid     = Output(UInt(1.W))
+        val slave_bresp      = Output(UInt(2.W)) 
+        val slave_bid        = Output(UInt(4.W))  
+
+        val slave_arready    = Output(UInt(1.W))
+        val slave_arvalid    = Input(UInt(1.W))
+        val slave_araddr     = Input(UInt(32.W))
+        val slave_arid       = Input(UInt(4.W))     
+        val slave_arlen      = Input(UInt(8.W))  
+        val slave_arsize     = Input(UInt(3.W)) 
+        val slave_arburst    = Input(UInt(2.W))
+
+        val slave_rready     = Input(UInt(1.W))  
+        val slave_rvalid     = Output(UInt(1.W)) 
+        val slave_rresp      = Output(UInt(2.W))  
+        val slave_rdata      = Output(UInt(64.W))  
+        val slave_rlast      = Output(UInt(1.W))  
+        val slave_rid        = Output(UInt(4.W))
     })
     val IFU0 = Module(new IFU())
-    val IFU_DPI0 = Module(new IFU_DPI())
+    val IFU_DPI0 = Module(new ysyx_22040154_IFU_DPI()) // verilog
     val IF2ID0 = Module(new IF2ID())
     val IDU0 = Module(new IDU())
     val ID2EX0 = Module(new ID2EX())
     val ALU0 = Module(new ALU())
-    val RegisterFiles0 = Module(new RegisterFiles())
+    val RegisterFiles0 = Module(new ysyx_22040154_RegisterFiles()) // verilog
     val EX2MEM0 = Module(new EX2MEM())
-    val MEM0 = Module(new MEM())
+    // val MEM0 = Module(new MEM())
     val MEMCTRL0 = Module(new MEMCTRL())
-    val MEM_DPI0 = Module(new MEM_DPI())
-    val LOADUNIT0 = Module(new LOADUNIT())
+    val MEM_DPI0 = Module(new ysyx_22040154_MEM_DPI()) // verilog
+    val LOADUNIT0 = Module(new ysyx_22040154_LOADUNIT()) // verilog
     val MEM2WB0 = Module(new MEM2WB())
     val CTRL0 = Module(new CTRL())
-    val CSR0 = Module(new CSR())
+    val CSR0 = Module(new ysyx_22040154_CSR()) // verilog
     val CLINT0 = Module(new CLINT())
     val ICACHE_CTRL0 = Module(new CACHE_CTRL())
     val ICACHE0 = Module(new ICACHE())
     val DCACHE_CTRL0 = Module(new DCACHE_CTRL())
     val DCACHE0 = Module(new DCACHE())
+    val AXIRW0 = Module(new ysyx_22040154_axi_rw()) // verilog
 
     //IF and ID
     // IFU0.io.regfile_out1 := RegisterFiles0.io.regfile_out1
@@ -110,7 +178,28 @@ class RV64Top extends Module
     IFU0.io.enIFU     := !CTRL0.io.stall_ifu
     IFU0.io.data      := ICACHE_CTRL0.io.data2cpu
     IFU0.io.ready     := ICACHE_CTRL0.io.ready2cpu
-    IFU_DPI0.io.pc    := ICACHE_CTRL0.io.addr2mem
+    // IFU_DPI0.io.pc    := ICACHE_CTRL0.io.addr2mem // DPI
+
+    AXIRW0.io.clock         := clock
+    AXIRW0.io.reset         := reset
+    AXIRW0.io.rw_addr_i     := ICACHE_CTRL0.io.addr2mem(31, 0) // AXI
+    AXIRW0.io.rw_valid_i    := ICACHE_CTRL0.io.valid2mem // AXI
+    AXIRW0.io.enw_i         := ICACHE_CTRL0.io.enw2mem // AXI
+    AXIRW0.io.rw_w_data_i   := ICACHE_CTRL0.io.data2mem // AXI
+    AXIRW0.io.rw_size_i     := ICACHE_CTRL0.io.wmask2mem // AXI
+    AXIRW0.io.axi_aw_ready_i:= io.master_awready // AXI
+    AXIRW0.io.axi_w_ready_i := io.master_wready // AXI
+    AXIRW0.io.axi_b_valid_i := io.master_bvalid // AXI 
+    AXIRW0.io.axi_b_resp_i  := io.master_bresp // AXI
+    AXIRW0.io.axi_b_id_i    := io.master_bid // AXI
+    AXIRW0.io.axi_b_user_i  := 0.U // AXI
+    AXIRW0.io.axi_ar_ready_i:= io.master_arready // AXI
+    AXIRW0.io.axi_r_valid_i := io.master_rvalid // AXI
+    AXIRW0.io.axi_r_resp_i  := io.master_rresp // AXI
+    AXIRW0.io.axi_r_data_i  := io.master_rdata // AXI
+    AXIRW0.io.axi_r_last_i  := io.master_rlast // AXI
+    AXIRW0.io.axi_r_id_i    := io.master_rid // AXI
+    AXIRW0.io.axi_r_user_i  := 0.U // AXI
 
     IF2ID0.io.enIF2ID := !CTRL0.io.stall_if2id
     IF2ID0.io.flush   := CTRL0.io.flush_if2id
@@ -128,11 +217,13 @@ class RV64Top extends Module
     ICACHE_CTRL0.io.cpu_addr := IFU0.io.pc
     ICACHE_CTRL0.io.cpu_data := 0.U
     ICACHE_CTRL0.io.cpu_enw := false.B
-    ICACHE_CTRL0.io.cpu_wmask := 0.U //!!!!
+    ICACHE_CTRL0.io.cpu_wmask := 0.U
     ICACHE_CTRL0.io.cpu_valid := IFU0.io.pc2cache_valid
 
-    ICACHE_CTRL0.io.mem_data := IFU_DPI0.io.raw_data
-    ICACHE_CTRL0.io.mem_ready := true.B //!!!!
+    // ICACHE_CTRL0.io.mem_data := IFU_DPI0.io.raw_data // DPI
+    // ICACHE_CTRL0.io.mem_ready := true.B // DPI
+    ICACHE_CTRL0.io.mem_data    := AXIRW0.io.data_read_o// AXI
+    ICACHE_CTRL0.io.mem_ready   := AXIRW0.io.rw_ready_o // AXI
 
     ICACHE_CTRL0.io.cache_data := ICACHE0.io.data
     ICACHE_CTRL0.io.cache_valid := ICACHE0.io.valid
@@ -221,7 +312,7 @@ class RV64Top extends Module
     CLINT0.io.inst          := IF2ID0.io.IDinst
     CLINT0.io.pc            := IF2ID0.io.IDpc
     CLINT0.io.global_int_en := CSR0.io.global_int_en
-    CLINT0.io.int_flag      := false.B
+    CLINT0.io.int_flag      := io.interrupt
     CLINT0.io.mstatus_in    := CSR0.io.mstatus_out
     CLINT0.io.mepc_in       := CSR0.io.mepc_out
     CLINT0.io.mtvec_in      := CSR0.io.mtvec_out
@@ -357,5 +448,81 @@ class RV64Top extends Module
     io.inst     := MEM2WB0.io.WBinst
     io.mem_pc   := EX2MEM0.io.MEMpc
     io.enMEM2WB := MEM2WB0.io.enMEM2WB
+
+    // SOC AXI-Master
+    io.master_awvalid  := AXIRW0.io.axi_aw_valid_o 
+    io.master_awaddr   := AXIRW0.io.axi_aw_addr_o
+    io.master_awid     := AXIRW0.io.axi_aw_id_o
+    io.master_awlen    := AXIRW0.io.axi_aw_len_o
+    io.master_awsize   := AXIRW0.io.axi_aw_size_o
+    io.master_awburst  := AXIRW0.io.axi_aw_burst_o
+
+    io.master_wvalid   := AXIRW0.io.axi_w_valid_o
+    io.master_wdata    := AXIRW0.io.axi_w_data_o
+    io.master_wstrb    := AXIRW0.io.axi_w_strb_o
+    io.master_wlast    := AXIRW0.io.axi_w_last_o
+
+    io.master_bready   := AXIRW0.io.axi_b_ready_o
+
+    io.master_arvalid  := AXIRW0.io.axi_ar_valid_o
+    io.master_araddr   := AXIRW0.io.axi_ar_addr_o
+    io.master_arid     := AXIRW0.io.axi_ar_id_o
+    io.master_arlen    := AXIRW0.io.axi_ar_len_o
+    io.master_arsize   := AXIRW0.io.axi_ar_size_o
+    io.master_arburst  := AXIRW0.io.axi_ar_burst_o
+
+    io.master_rready   := AXIRW0.io.axi_r_ready_o
+
+    // SOC AXI-Slave
+    io.slave_awready    := 0.U
+
+    io.slave_wready     := 0.U
+
+    io.slave_bvalid     := 0.U
+    io.slave_bresp      := 0.U
+    io.slave_bid        := 0.U
+
+    io.slave_arready    := 0.U
+
+    io.slave_rvalid     := 0.U
+    io.slave_rresp      := 0.U
+    io.slave_rdata      := 0.U
+    io.slave_rlast      := 0.U
+    io.slave_rid        := 0.U
+// io.axi_aw_valid_o   := AXIRW0.io.axi_aw_valid_o 
+// io.axi_aw_addr_o    := AXIRW0.io.axi_aw_addr_o  
+// io.axi_aw_prot_o    := AXIRW0.io.axi_aw_prot_o  
+// io.axi_aw_id_o      := AXIRW0.io.axi_aw_id_o    
+// io.axi_aw_user_o    := AXIRW0.io.axi_aw_user_o  
+// io.axi_aw_len_o     := AXIRW0.io.axi_aw_len_o   
+// io.axi_aw_size_o    := AXIRW0.io.axi_aw_size_o  
+// io.axi_aw_burst_o   := AXIRW0.io.axi_aw_burst_o 
+// io.axi_aw_lock_o    := AXIRW0.io.axi_aw_lock_o  
+// io.axi_aw_cache_o   := AXIRW0.io.axi_aw_cache_o 
+// io.axi_aw_qos_o     := AXIRW0.io.axi_aw_qos_o   
+// io.axi_aw_region_o  := AXIRW0.io.axi_aw_region_o
+
+// io.axi_w_valid_o    := AXIRW0.io.axi_w_valid_o  
+// io.axi_w_data_o     := AXIRW0.io.axi_w_data_o   
+// io.axi_w_strb_o     := AXIRW0.io.axi_w_strb_o   
+// io.axi_w_last_o     := AXIRW0.io.axi_w_last_o   
+// io.axi_w_user_o     := AXIRW0.io.axi_w_user_o   
+
+// io.axi_b_ready_o    := AXIRW0.io.axi_b_ready_o  
+
+// io.axi_ar_valid_o   := AXIRW0.io.axi_ar_valid_o 
+// io.axi_ar_addr_o    := AXIRW0.io.axi_ar_addr_o  
+// io.axi_ar_prot_o    := AXIRW0.io.axi_ar_prot_o  
+// io.axi_ar_id_o      := AXIRW0.io.axi_ar_id_o    
+// io.axi_ar_user_o    := AXIRW0.io.axi_ar_user_o  
+// io.axi_ar_len_o     := AXIRW0.io.axi_ar_len_o   
+// io.axi_ar_size_o    := AXIRW0.io.axi_ar_size_o  
+// io.axi_ar_burst_o   := AXIRW0.io.axi_ar_burst_o 
+// io.axi_ar_lock_o    := AXIRW0.io.axi_ar_lock_o  
+// io.axi_ar_cache_o   := AXIRW0.io.axi_ar_cache_o 
+// io.axi_ar_qos_o     := AXIRW0.io.axi_ar_qos_o   
+// io.axi_ar_region_o  := AXIRW0.io.axi_ar_region_o
+
+// io.axi_r_ready_o    := AXIRW0.io.axi_r_ready_o
     // io.skip_diff := MEM2WB0.io.WBLoad_flag && (RegNext(EX2MEM0.io.MEMraddr) === "ha0000048".U(64.W))
 }

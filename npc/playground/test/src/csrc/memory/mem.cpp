@@ -1,13 +1,14 @@
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include "verilated_dpi.h"
-#include "VRV64Top.h"
+#include "Vysyx_22040154_RV64Top.h"
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
 #include "mem.h"
 #include "device.h"
 #include "difftest.h"
+
 // 测试jal和jalr
     // 0x00468693, // addi a3,a3,4
     // 0x008000ef, // jal; pc=pc+0x08;x[1]=pc+4
@@ -20,7 +21,7 @@
     // 0x00570713, // addi a4,a4,5
     // 0x00100073, // ebreak
 static char *img_file = NULL;
-extern VRV64Top* top;
+extern Vysyx_22040154_RV64Top* top;
 // 0x00009117, //auipc	sp,0x9
 // 0x00000513, // li	a0,0
 // 0x00258593, // addi a1,a1,2
@@ -54,6 +55,8 @@ unsigned char mem[0x8000000] =
 {
 
 };
+
+axi4_mem <32,64,4> axi_mem(4096l*1024*1024);
 
 unsigned int get_inst(unsigned long addr)
 {
@@ -192,5 +195,6 @@ long load_img(char* img_file_name)
     assert(ret == 1);
     
     fclose(fp);
+    axi_mem.load_binary(img_file_name, 0x80000000);
     return size;
 }

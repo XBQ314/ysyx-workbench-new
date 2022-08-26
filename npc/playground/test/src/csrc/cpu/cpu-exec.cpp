@@ -1,7 +1,7 @@
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include "verilated_dpi.h"
-#include "VRV64Top.h"
+#include "Vysyx_22040154_RV64Top.h"
 #include <stdio.h>
 #include "reg.h"
 #include "cpu.h"
@@ -9,6 +9,11 @@
 #include "sdb.h"
 #include "utils.h"
 #include "difftest.h"
+#include "axi4.hpp"
+#include "axi4_slave.hpp"
+#include "axi4_mem.hpp"
+#include <iostream>
+using namespace std;
 
 #define CONFIG_ITRACE 0
 #define CONFIG_DIFFTEST 1
@@ -17,24 +22,101 @@
 VerilatedContext* contextp = NULL;
 VerilatedVcdC* tfp = NULL;
 
-VRV64Top* top;
+Vysyx_22040154_RV64Top* top;
+extern axi4_mem <32,64,4> axi_mem;
+axi4_ptr <32, 64, 4> mem_ptr;
+axi4<32, 64, 4> mem_sigs;
+axi4_ref<32, 64, 4> mem_sigs_ref(mem_sigs);
 
 extern NPCState npc_state;
 extern uint64_t NPC_PC;
 bool skip_difftest = false;
 uint64_t skipdiff_pc = 0;
 
+void connect_wire(axi4_ptr <32,64,4> &mem_ptr, Vysyx_22040154_RV64Top *top)
+{
+    // connect
+    // mem
+    // aw
+    mem_ptr.awaddr  = &(top->io_master_awaddr);
+    mem_ptr.awburst = &(top->io_master_awburst);
+    mem_ptr.awid    = &(top->io_master_awid);
+    mem_ptr.awlen   = &(top->io_master_awlen);
+    mem_ptr.awready = &(top->io_master_awready);
+    mem_ptr.awsize  = &(top->io_master_awsize);
+    mem_ptr.awvalid = &(top->io_master_awvalid);
+    // w
+    mem_ptr.wdata   = &(top->io_master_wdata);
+    mem_ptr.wlast   = &(top->io_master_wlast);
+    mem_ptr.wready  = &(top->io_master_wready);
+    mem_ptr.wstrb   = &(top->io_master_wstrb);
+    mem_ptr.wvalid  = &(top->io_master_wvalid);
+    // b
+    mem_ptr.bid     = &(top->io_master_bid);
+    mem_ptr.bready  = &(top->io_master_bready);
+    mem_ptr.bresp   = &(top->io_master_bresp);
+    mem_ptr.bvalid  = &(top->io_master_bvalid);
+    // ar
+    mem_ptr.araddr  = &(top->io_master_araddr);
+    mem_ptr.arburst = &(top->io_master_arburst);
+    mem_ptr.arid    = &(top->io_master_arid);
+    mem_ptr.arlen   = &(top->io_master_arlen);
+    mem_ptr.arready = &(top->io_master_arready);
+    mem_ptr.arsize  = &(top->io_master_arsize);
+    mem_ptr.arvalid = &(top->io_master_arvalid);
+    // r
+    mem_ptr.rdata   = &(top->io_master_rdata);
+    mem_ptr.rid     = &(top->io_master_rid);
+    mem_ptr.rlast   = &(top->io_master_rlast);
+    mem_ptr.rready  = &(top->io_master_rready);
+    mem_ptr.rresp   = &(top->io_master_rresp);
+    mem_ptr.rvalid  = &(top->io_master_rvalid);
+}
+
 void step_and_dump_wave()
 {
-    top->eval();
     contextp->timeInc(1);
+    
+    // cout << "mem_ref arvalid\t" << (unsigned long)mem_ref.arvalid << endl;
+    // cout << "mem_ref arready\t" << (unsigned long)mem_ref.arready << endl;
+    top->eval();
+    // cout << "mem_sigs_ref arvalid\t" << (unsigned long)mem_sigs_ref.arvalid << endl;
+    // cout << "mem_sigs_ref arready\t" << (unsigned long)mem_sigs_ref.arready << endl;
+
+
     tfp->dump(contextp->time());
 }
 
 void single_cycle() 
 {
+    connect_wire(mem_ptr, top);
+    assert(mem_ptr.check());
+    axi4_ref<32, 64, 4> mem_ref(mem_ptr);
 	top->clock = 0; step_and_dump_wave();
+    // cout << "before clock=1"<<endl;
+    // cout << "mem_ref arvalid\t" << (unsigned long)mem_ref.arvalid << endl;
+    // cout << "mem_ref arready\t" << (unsigned long)mem_ref.arready << endl;
+    // cout << "mem_ptr arvalid\t" << (unsigned long)*mem_ptr.arvalid << endl;
+    // cout << "mem_ptr arready\t" << (unsigned long)*mem_ptr.arready << endl;
+    // cout << "top arvalid\t" << (unsigned long)top->io_master_arvalid << endl;
+    // cout << "top arready\t" << (unsigned long)top->io_master_arready << endl;
+    // cout << "mem_ref rvalid\t" << (unsigned long)mem_ref.rvalid << endl;
+    // cout << "mem_ref rready\t" << (unsigned long)mem_ref.rready << endl;
+    mem_sigs.update_input(mem_ref);
 	top->clock = 1; step_and_dump_wave();
+    // cout << "top arvalid\t" << (unsigned long)top->io_master_arvalid << endl;
+    // cout << "top arready\t" << (unsigned long)top->io_master_arready << endl;
+    axi_mem.beat(mem_sigs_ref); // read channel + write channel
+    mem_sigs.update_output(mem_ref);
+    // cout << "after clock=1"<<endl;
+    // cout << "mem_ref arvalid\t" << (unsigned long)mem_ref.arvalid << endl;
+    // cout << "mem_ref arready\t" << (unsigned long)mem_ref.arready << endl;
+    // cout << "mem_ptr arvalid\t" << (unsigned long)*mem_ptr.arvalid << endl;
+    // cout << "mem_ptr arready\t" << (unsigned long)*mem_ptr.arready << endl;
+    // cout << "top arvalid\t" << (unsigned long)top->io_master_arvalid << endl;
+    // cout << "top arready\t" << (unsigned long)top->io_master_arready << endl;
+    // cout << "mem_ref rvalid\t" << (unsigned long)mem_ref.rvalid << endl;
+    // cout << "mem_ref rready\t" << (unsigned long)mem_ref.rready << endl;
 }
 
 void reset(int n)
@@ -49,7 +131,7 @@ void sim_init()
 {
   contextp = new VerilatedContext;
   tfp = new VerilatedVcdC;
-  top = new VRV64Top;
+  top = new Vysyx_22040154_RV64Top;
   contextp->traceEverOn(true);
   top->trace(tfp, 0);
   tfp->open("./wavedata/VRV64Top.vcd");

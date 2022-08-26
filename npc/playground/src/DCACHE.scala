@@ -55,7 +55,7 @@ class DCACHE extends Module
     RAM3.io.A   := io.index(5, 0)
     RAM3.io.D   := io.wdata
 
-    val io_index = RegNext(io.index)
+    val io_index = RegNext(io.index, 0.U(8.W))
     io.data := 0.U
     switch(io_index(7, 6))
     {

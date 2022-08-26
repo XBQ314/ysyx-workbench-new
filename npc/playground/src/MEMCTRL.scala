@@ -19,7 +19,7 @@ class MEMCTRL extends Module
     val BUSY = "b010".U
     val nxt_state = Wire(UInt(3.W))
     val cur_state = RegNext(nxt_state, "b000".U)
-    val last_pc = RegNext(io.pc) // 记录上次的pc,来判断指令是否更新,防止一条ls指令触发两次读写
+    val last_pc = RegNext(io.pc, 0.U(64.W)) // 记录上次的pc,来判断指令是否更新,防止一条ls指令触发两次读写
 
     io.dcache_valid := false.B
     io.memstall_req := false.B

@@ -1,7 +1,7 @@
 import chisel3._
 import chisel3.util._
 
-class IFU_DPI extends BlackBox with HasBlackBoxInline
+class ysyx_22040154_IFU_DPI extends BlackBox with HasBlackBoxInline
 {
     val io = IO(new Bundle
     {
@@ -11,7 +11,7 @@ class IFU_DPI extends BlackBox with HasBlackBoxInline
     })
     setInline("IFU_DPI.v",
                 """
-|module IFU_DPI
+|module ysyx_22040154_IFU_DPI
 |(
 |    input [63:0]pc,
 |    output [31:0]inst,

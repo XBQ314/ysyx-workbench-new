@@ -33,7 +33,7 @@ import chisel3.util._
 //     io.regfile_out2 := regFiles(io.read2_idx)
 // }
 
-class RegisterFiles extends BlackBox with HasBlackBoxInline
+class ysyx_22040154_RegisterFiles extends BlackBox with HasBlackBoxInline
 {
     val io = IO(new Bundle
     {
@@ -50,7 +50,7 @@ class RegisterFiles extends BlackBox with HasBlackBoxInline
     })
     setInline("RegisterFiles.v",
                 """
-|module RegisterFiles
+|module ysyx_22040154_RegisterFiles
 |(
 |    input clock,
 |    input reset,

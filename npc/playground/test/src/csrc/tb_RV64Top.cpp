@@ -6,6 +6,10 @@
 #include "utils.h"
 #include "difftest.h"
 #include "device.h"
+#include "axi4.hpp"
+#include "axi4_slave.hpp"
+#include "axi4_mem.hpp"
+
 
 int main(int argc, char *argv[]) 
 {
