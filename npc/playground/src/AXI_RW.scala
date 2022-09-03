@@ -136,7 +136,7 @@ class ysyx_22040154_axi_rw extends BlackBox with HasBlackBoxInline
 |
 |	 input                               rw_valid_i,         //IF&MEM输入信号
 |    input                               enw_i,
-|	 output                              rw_ready_o,         //IF&MEM输入信号
+|	 output     reg                      rw_ready_o,         //IF&MEM输入信号
 |    output     [RW_DATA_WIDTH-1:0]      data_read_o,        //IF&MEM输入信号
 |    input  [RW_DATA_WIDTH-1:0]          rw_w_data_i,        //IF&MEM输入信号
 |    input  [RW_ADDR_WIDTH-1:0]          rw_addr_i,          //IF&MEM输入信号
@@ -260,7 +260,7 @@ class ysyx_22040154_axi_rw extends BlackBox with HasBlackBoxInline
 |    assign axi_w_valid_o    = (cur_state == WVALID);                                                            // AXI_Lite
 |    assign axi_w_data_o     = rw_w_data_i ;                                                                     // AXI_Lite
 |    assign axi_w_strb_o     = rw_size_i;                                                                        // AXI_Lite
-|    assign axi_w_last_o     = 1'b0;
+|    assign axi_w_last_o     = 1'b1; // 标志突发传输的最后一次,在AXILite中始终为1
 |    assign axi_w_user_o     = axi_user;                                                                         //初始化信号即�?
 |
 |    // 写应答通道
@@ -311,7 +311,37 @@ class ysyx_22040154_axi_rw extends BlackBox with HasBlackBoxInline
 |    assign axi_r_ready_o    = (cur_state == RREADY) && (axi_r_valid_i);                                         // AXI_Lite
 |
 |    // rw_ready_o
-|    assign rw_ready_o = (cur_state == IDLE);
+|    // assign rw_ready_o = (cur_state == IDLE);
+|    always@(*)
+|    begin
+|        case(cur_state)
+|        IDLE:
+|        begin
+|            rw_ready_o = 'd0;
+|        end
+|        ARVALID:
+|        begin
+|            rw_ready_o = 'd0;
+|        end
+|        RREADY:
+|        begin
+|            rw_ready_o = axi_r_valid_i;
+|        end
+|        AWVALID:
+|        begin
+|            rw_ready_o = 'd0;
+|        end
+|        WVALID:
+|        begin
+|            rw_ready_o = 'd0;
+|        end
+|        BREADY:
+|        begin
+|            rw_ready_o = axi_b_valid_i;
+|        end
+|        default: begin rw_ready_o = 'd0; end
+|        endcase
+|    end
 |endmodule
 |
                 """.stripMargin)

@@ -5,6 +5,7 @@ class ysyx_22040154_MEM_DPI extends BlackBox with HasBlackBoxInline
 {
     val io = IO(new Bundle
     {
+        val clock = Input(Clock())
         val raddr = Input(UInt(64.W))
         val waddr = Input(UInt(64.W))
         val wdata = Input(UInt(64.W))
@@ -16,6 +17,7 @@ class ysyx_22040154_MEM_DPI extends BlackBox with HasBlackBoxInline
                 """
 |module ysyx_22040154_MEM_DPI
 |(
+|input clock,
 |input [63:0]raddr,
 |input [63:0]waddr,
 |input [63:0]wdata,
@@ -27,7 +29,7 @@ class ysyx_22040154_MEM_DPI extends BlackBox with HasBlackBoxInline
 |import "DPI-C" function void pmem_read(input longint raddr, output longint rdata);
 |import "DPI-C" function void pmem_write(input longint waddr, input longint wdata, input byte wmask);
 |
-|always @(*) 
+|always @(posedge clock) 
 |begin
 |   pmem_read(raddr, rdata);
 |   pmem_write(waddr, wdata, wmask);

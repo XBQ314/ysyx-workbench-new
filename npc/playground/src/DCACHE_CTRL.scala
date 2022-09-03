@@ -42,6 +42,7 @@ class DCACHE_CTRL extends Module
         val cache_tag = Input(UInt(52.W))
 
         val dcache_stall_req = Output(Bool())
+        val uart_dpi_flag = Output(Bool())
     })
     val IDLE = "b000".U
     val COMPARE_TAG = "b001".U
@@ -101,6 +102,7 @@ class DCACHE_CTRL extends Module
     io.tag2cache := 0.U
 
     io.dcache_stall_req := true.B
+    io.uart_dpi_flag := false.B
     // FSM
     when(cur_state === IDLE)
     {
@@ -147,7 +149,7 @@ class DCACHE_CTRL extends Module
             }.otherwise // 需要写回mem
             {
                 // 111111111111111111111111111111111111111
-                // io.enw2mem := true.B
+                io.enw2mem := true.B
                 oldtag := io.cache_tag
                 nxt_state := WRITE_BACKL64
             }
@@ -155,10 +157,12 @@ class DCACHE_CTRL extends Module
     }.elsewhen(cur_state === CACHE_READ) // 单端口RAM不支持同时读写,所以需要加一个单独的READ状态
     {
         // io.dcache_stall_req := false.B
+        io.ready2cpu := true.B
         nxt_state := IDLE
     }.elsewhen(cur_state === ALLOCATE_L64)
     {
         io.addr2mem := Cat(io.cpu_addr(63, 4), "b0000".U(4.W))
+        io.valid2mem := true.B
         when(io.mem_ready)
         {
             // io.enw2cache := true.B
@@ -171,6 +175,7 @@ class DCACHE_CTRL extends Module
     }.elsewhen(cur_state === ALLOCATE_H64)
     {
         io.addr2mem := Cat(io.cpu_addr(63, 4), "b1000".U(4.W))
+        io.valid2mem := true.B
         when(io.mem_ready)
         {
             io.enw2cache := true.B // 对cache真正的分配写入发生在ALLOCATE_H64
@@ -186,6 +191,7 @@ class DCACHE_CTRL extends Module
         io.addr2mem := Cat(oldtag, io.index2cache, "b0000".U(4.W))
         io.data2mem := io.cache_data(63, 0)
         io.enw2mem := true.B
+        io.valid2mem := true.B
         // io.valid2mem := false.B
         when(io.mem_ready)
         {
@@ -202,30 +208,34 @@ class DCACHE_CTRL extends Module
         io.addr2mem := Cat(oldtag, io.index2cache, "b1000".U(4.W))
         io.data2mem := io.cache_data(127, 64)
         io.enw2mem := true.B
+        io.valid2mem := true.B
         // io.valid2mem := false.B
         when(io.mem_ready)
         {
             // 111111111111111111111111111111111111111
-            // io.enw2mem := false.B
+            io.enw2mem := false.B
             // io.valid2mem := false.B
             nxt_state := ALLOCATE_L64
         }.otherwise
         {
             nxt_state := WRITE_BACKH64
         }
-    }.elsewhen(cur_state === UNCACHED)
+    }.elsewhen(cur_state === UNCACHED) // 如果是触发了UNCACHE的外设访存，直接将CPU信号越过CACHE进行输出
     {
         io.addr2mem := io.cpu_addr
         io.data2mem := io.cpu_data
         io.wmask2mem := io.cpu_wmask
-        io.valid2mem := false.B
+        io.valid2mem := false.B // 应该是为了禁止访存
+        // io.valid2mem := true.B
         io.enw2mem := false.B
-        when(io.mem_ready)
-        {
+        io.dcache_stall_req := false.B
+        // when(io.mem_ready)
+        // {
             nxt_state := IDLE
-        }.otherwise
-        {
-            nxt_state := UNCACHED
-        }
+        // }.otherwise
+        // {
+        //     nxt_state := UNCACHED
+        // }
+        io.uart_dpi_flag := true.B
     }
 }

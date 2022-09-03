@@ -11,6 +11,8 @@ class RV64Top extends Module
         val inst = Output(UInt(32.W))
 
         val mem_pc = Output(UInt(64.W))
+        val mem_addr = Output(UInt(64.W))
+        val mem_wdata = Output(UInt(64.W))
         val enMEM2WB = Output(Bool())
 
         // // Advanced eXtensible Interface
@@ -161,6 +163,7 @@ class RV64Top extends Module
     val DCACHE_CTRL0 = Module(new DCACHE_CTRL())
     val DCACHE0 = Module(new DCACHE())
     val AXIRW0 = Module(new ysyx_22040154_axi_rw()) // verilog
+    val AXI_ARIBITER0 = Module(new AXI_ARIBITER())
 
     //IF and ID
     // IFU0.io.regfile_out1 := RegisterFiles0.io.regfile_out1
@@ -180,13 +183,19 @@ class RV64Top extends Module
     IFU0.io.ready     := ICACHE_CTRL0.io.ready2cpu
     // IFU_DPI0.io.pc    := ICACHE_CTRL0.io.addr2mem // DPI
 
-    AXIRW0.io.clock         := clock
-    AXIRW0.io.reset         := reset
-    AXIRW0.io.rw_addr_i     := ICACHE_CTRL0.io.addr2mem(31, 0) // AXI
-    AXIRW0.io.rw_valid_i    := ICACHE_CTRL0.io.valid2mem // AXI
-    AXIRW0.io.enw_i         := ICACHE_CTRL0.io.enw2mem // AXI
-    AXIRW0.io.rw_w_data_i   := ICACHE_CTRL0.io.data2mem // AXI
-    AXIRW0.io.rw_size_i     := ICACHE_CTRL0.io.wmask2mem // AXI
+    AXIRW0.io.clock         := clock // AXI
+    AXIRW0.io.reset         := reset // AXI
+    // AXIRW0.io.rw_addr_i     := ICACHE_CTRL0.io.addr2mem(31, 0) // AXI
+    // AXIRW0.io.rw_valid_i    := ICACHE_CTRL0.io.valid2mem // AXI
+    // AXIRW0.io.enw_i         := ICACHE_CTRL0.io.enw2mem // AXI
+    // AXIRW0.io.rw_w_data_i   := ICACHE_CTRL0.io.data2mem // AXI
+    // AXIRW0.io.rw_size_i     := ICACHE_CTRL0.io.wmask2mem // AXI
+    AXIRW0.io.rw_addr_i     := AXI_ARIBITER0.io.rw_addr_i // AXI
+    AXIRW0.io.rw_valid_i    := AXI_ARIBITER0.io.rw_valid_i // AXI
+    AXIRW0.io.enw_i         := AXI_ARIBITER0.io.enw_i // AXI
+    AXIRW0.io.rw_w_data_i   := AXI_ARIBITER0.io.rw_w_data_i // AXI
+    AXIRW0.io.rw_size_i     := AXI_ARIBITER0.io.rw_size_i // AXI
+
     AXIRW0.io.axi_aw_ready_i:= io.master_awready // AXI
     AXIRW0.io.axi_w_ready_i := io.master_wready // AXI
     AXIRW0.io.axi_b_valid_i := io.master_bvalid // AXI 
@@ -222,8 +231,10 @@ class RV64Top extends Module
 
     // ICACHE_CTRL0.io.mem_data := IFU_DPI0.io.raw_data // DPI
     // ICACHE_CTRL0.io.mem_ready := true.B // DPI
-    ICACHE_CTRL0.io.mem_data    := AXIRW0.io.data_read_o// AXI
-    ICACHE_CTRL0.io.mem_ready   := AXIRW0.io.rw_ready_o // AXI
+    // ICACHE_CTRL0.io.mem_data    := AXIRW0.io.data_read_o// AXI
+    // ICACHE_CTRL0.io.mem_ready   := AXIRW0.io.rw_ready_o // AXI
+    ICACHE_CTRL0.io.mem_data    := AXI_ARIBITER0.io.ICache_mem_data// AXI
+    ICACHE_CTRL0.io.mem_ready   := AXI_ARIBITER0.io.ICache_mem_ready // AXI
 
     ICACHE_CTRL0.io.cache_data := ICACHE0.io.data
     ICACHE_CTRL0.io.cache_valid := ICACHE0.io.valid
@@ -270,19 +281,19 @@ class RV64Top extends Module
                                Mux(CTRL0.io.feedflag_mem2id_rs2,MEM2WB0.io.MEMwrb2reg,
                                Mux(CTRL0.io.feedflag_wb2id_rs2, MEM2WB0.io.WBwrb2reg,
                                RegisterFiles0.io.regfile_out2)))
-    ID2EX0.io.IDcsr_rd      := IDU0.io.csridx
-    ID2EX0.io.IDcsrout      := CSR0.io.csr_out
-    ID2EX0.io.IDclint_enw   := CLINT0.io.csr_enw
-    ID2EX0.io.IDclint_mstatus:= CLINT0.io.mstatus_out
-    ID2EX0.io.IDclint_mepc  := CLINT0.io.mepc_out
-    ID2EX0.io.IDclint_mcause:= CLINT0.io.mcause_out
-    ID2EX0.io.IDdiv_flag    := IDU0.io.div_flag
-    ID2EX0.io.IDdiv_signed  := IDU0.io.div_signed
-    ID2EX0.io.IDmul_flag    := IDU0.io.mul_flag
-    ID2EX0.io.IDBtype_flag  := IDU0.io.Btype_flag
-    ID2EX0.io.IDLoad_flag   := IDU0.io.Load_flag
-    ID2EX0.io.IDpc          := IF2ID0.io.IDpc
-    ID2EX0.io.IDinst        := IF2ID0.io.IDinst
+    ID2EX0.io.IDcsr_rd          := IDU0.io.csridx
+    ID2EX0.io.IDcsrout          := CSR0.io.csr_out
+    ID2EX0.io.IDclint_enw       := CLINT0.io.csr_enw
+    ID2EX0.io.IDclint_mstatus   := CLINT0.io.mstatus_out
+    ID2EX0.io.IDclint_mepc      := CLINT0.io.mepc_out
+    ID2EX0.io.IDclint_mcause    := CLINT0.io.mcause_out
+    ID2EX0.io.IDdiv_flag        := IDU0.io.div_flag
+    ID2EX0.io.IDdiv_signed      := IDU0.io.div_signed
+    ID2EX0.io.IDmul_flag        := IDU0.io.mul_flag
+    ID2EX0.io.IDBtype_flag      := IDU0.io.Btype_flag
+    ID2EX0.io.IDLoad_flag       := IDU0.io.Load_flag
+    ID2EX0.io.IDpc              := IF2ID0.io.IDpc
+    ID2EX0.io.IDinst            := IF2ID0.io.IDinst
 
     ALU0.io.clock        := clock
     ALU0.io.reset        := reset
@@ -318,27 +329,27 @@ class RV64Top extends Module
     CLINT0.io.mtvec_in      := CSR0.io.mtvec_out
 
     //EX and MEM
-    EX2MEM0.io.enEX2MEM   := !CTRL0.io.stall_ex2mem
-    EX2MEM0.io.flush      := CTRL0.io.flush_ex2mem
+    EX2MEM0.io.enEX2MEM         := !CTRL0.io.stall_ex2mem
+    EX2MEM0.io.flush            := CTRL0.io.flush_ex2mem
 
-    EX2MEM0.io.EXraddr    := ALU0.io.ALUout_data
-    EX2MEM0.io.EXwaddr    := ALU0.io.ALUout_data
-    EX2MEM0.io.EXwdata    := ID2EX0.io.EXregout2
-    EX2MEM0.io.EXwmask    := ID2EX0.io.EXWmask
-    EX2MEM0.io.EXLOADctrl := ID2EX0.io.EXLOADctrl
-    EX2MEM0.io.EXrd       := ID2EX0.io.EXrd
-    EX2MEM0.io.EXenw      := ID2EX0.io.EXenw
-    EX2MEM0.io.EXcsr_enw  := ID2EX0.io.EXcsr_enw
-    EX2MEM0.io.EXwrb2reg  := Mux(ID2EX0.io.EXcsr_enw === 0.U, ALU0.io.ALUout_data, ID2EX0.io.EXcsrout)
-    EX2MEM0.io.EXcsr_rd   := ID2EX0.io.EXcsr_rd
-    EX2MEM0.io.EXwrb2csr  := ALU0.io.ALUout_data
-    EX2MEM0.io.EXclint_enw:=ID2EX0.io.EXclint_enw
-    EX2MEM0.io.EXclint_mstatus:= ID2EX0.io.EXclint_mstatus
-    EX2MEM0.io.EXclint_mepc  :=  ID2EX0.io.EXclint_mepc  
-    EX2MEM0.io.EXclint_mcause:=  ID2EX0.io.EXclint_mcause
-    EX2MEM0.io.EXLoad_flag:= ID2EX0.io.EXLoad_flag
-    EX2MEM0.io.EXpc       := ID2EX0.io.EXpc
-    EX2MEM0.io.EXinst     := ID2EX0.io.EXinst
+    EX2MEM0.io.EXraddr          := ALU0.io.ALUout_data
+    EX2MEM0.io.EXwaddr          := ALU0.io.ALUout_data
+    EX2MEM0.io.EXwdata          := ID2EX0.io.EXregout2
+    EX2MEM0.io.EXwmask          := ID2EX0.io.EXWmask
+    EX2MEM0.io.EXLOADctrl       := ID2EX0.io.EXLOADctrl
+    EX2MEM0.io.EXrd             := ID2EX0.io.EXrd
+    EX2MEM0.io.EXenw            := ID2EX0.io.EXenw
+    EX2MEM0.io.EXcsr_enw        := ID2EX0.io.EXcsr_enw
+    EX2MEM0.io.EXwrb2reg        := Mux(ID2EX0.io.EXcsr_enw === 0.U, ALU0.io.ALUout_data, ID2EX0.io.EXcsrout)
+    EX2MEM0.io.EXcsr_rd         := ID2EX0.io.EXcsr_rd
+    EX2MEM0.io.EXwrb2csr        := ALU0.io.ALUout_data
+    EX2MEM0.io.EXclint_enw      := ID2EX0.io.EXclint_enw
+    EX2MEM0.io.EXclint_mstatus  := ID2EX0.io.EXclint_mstatus
+    EX2MEM0.io.EXclint_mepc     := ID2EX0.io.EXclint_mepc  
+    EX2MEM0.io.EXclint_mcause   := ID2EX0.io.EXclint_mcause
+    EX2MEM0.io.EXLoad_flag      := ID2EX0.io.EXLoad_flag
+    EX2MEM0.io.EXpc             := ID2EX0.io.EXpc
+    EX2MEM0.io.EXinst           := ID2EX0.io.EXinst
 
     // MEM0.io.raddr    := EX2MEM0.io.MEMraddr
     // MEM0.io.waddr    := EX2MEM0.io.MEMwaddr
@@ -347,25 +358,27 @@ class RV64Top extends Module
     // MEM0.io.enMEM    := MEM2WB0.io.enMEM2WB
     // MEM0.io.LOADctrl := EX2MEM0.io.MEMLOADctrl
 
-    DCACHE_CTRL0.io.cpu_addr := EX2MEM0.io.MEMraddr // raddr is the same with waddr
-    DCACHE_CTRL0.io.cpu_data := EX2MEM0.io.MEMwdata
-    DCACHE_CTRL0.io.cpu_enw := (EX2MEM0.io.MEMwmask =/= "h00".U(8.W))
-    DCACHE_CTRL0.io.cpu_wmask := EX2MEM0.io.MEMwmask
-    DCACHE_CTRL0.io.cpu_valid := MEMCTRL0.io.dcache_valid
+    DCACHE_CTRL0.io.cpu_addr    := EX2MEM0.io.MEMraddr // raddr is the same with waddr
+    DCACHE_CTRL0.io.cpu_data    := EX2MEM0.io.MEMwdata
+    DCACHE_CTRL0.io.cpu_enw     := (EX2MEM0.io.MEMwmask =/= "h00".U(8.W))
+    DCACHE_CTRL0.io.cpu_wmask   := EX2MEM0.io.MEMwmask
+    DCACHE_CTRL0.io.cpu_valid   := MEMCTRL0.io.dcache_valid
     DCACHE_CTRL0.io.uncached_flag := MEMCTRL0.io.uncached_flag
 
-    DCACHE_CTRL0.io.mem_data := MEM_DPI0.io.rdata
-    DCACHE_CTRL0.io.mem_ready := true.B //!!!!!
+    // DCACHE_CTRL0.io.mem_data := MEM_DPI0.io.rdata
+    // DCACHE_CTRL0.io.mem_ready := true.B //!!!!!
+    DCACHE_CTRL0.io.mem_data    := AXI_ARIBITER0.io.DCache_mem_data
+    DCACHE_CTRL0.io.mem_ready   := AXI_ARIBITER0.io.DCache_mem_ready
 
-    DCACHE_CTRL0.io.cache_data := DCACHE0.io.data
+    DCACHE_CTRL0.io.cache_data  := DCACHE0.io.data
     DCACHE_CTRL0.io.cache_valid := DCACHE0.io.valid
     DCACHE_CTRL0.io.cache_dirty := DCACHE0.io.dirty
-    DCACHE_CTRL0.io.cache_tag := DCACHE0.io.tag
+    DCACHE_CTRL0.io.cache_tag   := DCACHE0.io.tag
 
-    MEMCTRL0.io.loadstore_flag := ((EX2MEM0.io.MEMLOADctrl =/= "b000".U(3.W)) || (EX2MEM0.io.MEMwmask =/= "h00".U(8.W)))
-    MEMCTRL0.io.dcache_ready := DCACHE_CTRL0.io.ready2cpu
-    MEMCTRL0.io.pc := EX2MEM0.io.MEMpc
-    MEMCTRL0.io.addr := EX2MEM0.io.MEMraddr  
+    MEMCTRL0.io.loadstore_flag  := ((EX2MEM0.io.MEMLOADctrl =/= "b000".U(3.W)) || (EX2MEM0.io.MEMwmask =/= "h00".U(8.W)))
+    MEMCTRL0.io.dcache_ready    := DCACHE_CTRL0.io.ready2cpu
+    MEMCTRL0.io.pc      := EX2MEM0.io.MEMpc
+    MEMCTRL0.io.addr    := EX2MEM0.io.MEMraddr  
 
     DCACHE0.io.CLK      := clock
     DCACHE0.io.index    := DCACHE_CTRL0.io.index2cache
@@ -377,10 +390,13 @@ class RV64Top extends Module
     DCACHE0.io.in_dirty := DCACHE_CTRL0.io.dirty2cache
     DCACHE0.io.in_tag   := DCACHE_CTRL0.io.tag2cache
 
-    MEM_DPI0.io.raddr := DCACHE_CTRL0.io.addr2mem
-    MEM_DPI0.io.waddr := DCACHE_CTRL0.io.addr2mem
-    MEM_DPI0.io.wdata := DCACHE_CTRL0.io.data2mem
-    MEM_DPI0.io.wmask := DCACHE_CTRL0.io.wmask2mem
+    MEM_DPI0.io.clock := clock
+    // MEM_DPI0.io.raddr := Mux(DCACHE_CTRL0.io.uart_dpi_flag, DCACHE_CTRL0.io.addr2mem, 0.U) // DPI-C
+    // MEM_DPI0.io.waddr := Mux(DCACHE_CTRL0.io.uart_dpi_flag, DCACHE_CTRL0.io.addr2mem, 0.U) // DPI-C
+    MEM_DPI0.io.raddr := DCACHE_CTRL0.io.addr2mem // DPI-C
+    MEM_DPI0.io.waddr := DCACHE_CTRL0.io.addr2mem // DPI-C
+    MEM_DPI0.io.wdata := DCACHE_CTRL0.io.data2mem // DPI-C
+    MEM_DPI0.io.wmask := DCACHE_CTRL0.io.wmask2mem // DPI-C
 
     LOADUNIT0.io.raddr := EX2MEM0.io.MEMraddr
     LOADUNIT0.io.rdata_native := DCACHE_CTRL0.io.data2cpu
@@ -443,11 +459,29 @@ class RV64Top extends Module
     CTRL0.io.mulstall_req   := ALU0.io.mulstall_req
     CTRL0.io.divstall_req   := ALU0.io.divstall_req
 
+    //AXI Aribter
+    AXI_ARIBITER0.io.ICache_addr2mem    := ICACHE_CTRL0.io.addr2mem(31, 0)
+    AXI_ARIBITER0.io.ICache_data2mem    := ICACHE_CTRL0.io.data2mem
+    AXI_ARIBITER0.io.ICache_wmask2mem   := ICACHE_CTRL0.io.wmask2mem
+    AXI_ARIBITER0.io.ICache_valid2mem   := ICACHE_CTRL0.io.valid2mem
+    AXI_ARIBITER0.io.ICache_enw2mem     := ICACHE_CTRL0.io.enw2mem
+    
+    AXI_ARIBITER0.io.DCache_addr2mem    := DCACHE_CTRL0.io.addr2mem(31, 0)
+    AXI_ARIBITER0.io.DCache_data2mem    := DCACHE_CTRL0.io.data2mem
+    AXI_ARIBITER0.io.DCache_wmask2mem   := DCACHE_CTRL0.io.wmask2mem
+    AXI_ARIBITER0.io.DCache_valid2mem   := DCACHE_CTRL0.io.valid2mem
+    AXI_ARIBITER0.io.DCache_enw2mem     := DCACHE_CTRL0.io.enw2mem
+
+    AXI_ARIBITER0.io.rw_ready_o         := AXIRW0.io.rw_ready_o
+    AXI_ARIBITER0.io.data_read_o        := AXIRW0.io.data_read_o
+
     //top input
-    io.pc       := MEM2WB0.io.WBpc
-    io.inst     := MEM2WB0.io.WBinst
-    io.mem_pc   := EX2MEM0.io.MEMpc
-    io.enMEM2WB := MEM2WB0.io.enMEM2WB
+    io.pc           := MEM2WB0.io.WBpc
+    io.inst         := MEM2WB0.io.WBinst
+    io.mem_pc       := EX2MEM0.io.MEMpc
+    io.mem_addr     := EX2MEM0.io.MEMwaddr
+    io.mem_wdata    := EX2MEM0.io.MEMwdata
+    io.enMEM2WB     := MEM2WB0.io.enMEM2WB
 
     // SOC AXI-Master
     io.master_awvalid  := AXIRW0.io.axi_aw_valid_o 

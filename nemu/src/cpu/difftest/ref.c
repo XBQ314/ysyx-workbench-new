@@ -48,6 +48,16 @@ void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction)
   return;
 }
 
+// void difftest_csrcpy(void *dut, bool direction)
+// {
+//   return;
+// }
+
+// void difftest_uarchstatus_cpy()
+// {
+//   return;
+// }
+
 void difftest_regcpy(void *dut, bool direction) 
 {
   // printf("difftest_regcpy!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");

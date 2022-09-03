@@ -9,6 +9,7 @@
 #include "device.h"
 #include "difftest.h"
 
+extern long inst_num;
 // 测试jal和jalr
     // 0x00468693, // addi a3,a3,4
     // 0x008000ef, // jal; pc=pc+0x08;x[1]=pc+4
@@ -139,7 +140,11 @@ extern "C" void pmem_write(long long waddr, long long wdata, uint8_t wmask) // S
         // }
         if(wmask == 0x01 || wmask == 0x03 || wmask == 0x0f || wmask == 0xff)
         {
-            // printf("write to waddr:0x%llx, wdata:0x%llx, wmask:0x%x\n", waddr, wdata, wmask);
+            // if(waddr==0x80013404)
+            // {
+            //     printf("write to waddr:0x%llx, wdata:0x%llx, wmask:0x%x\n", waddr, wdata, wmask);
+            //     printf("inst_num: %ld\n", inst_num);
+            // }            
         }
         switch(wmask)
         { 

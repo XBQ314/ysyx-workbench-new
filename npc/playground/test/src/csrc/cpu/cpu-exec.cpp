@@ -17,7 +17,9 @@ using namespace std;
 
 #define CONFIG_ITRACE 0
 #define CONFIG_DIFFTEST 1
-#define CONFIG_WATCHPOINT 0
+#define CONFIG_WATCHPOINT 1
+
+long inst_num=0;
 
 VerilatedContext* contextp = NULL;
 VerilatedVcdC* tfp = NULL;
@@ -75,16 +77,20 @@ void connect_wire(axi4_ptr <32,64,4> &mem_ptr, Vysyx_22040154_RV64Top *top)
 
 void step_and_dump_wave()
 {
+    // connect_wire(mem_ptr, top);
+    // assert(mem_ptr.check());
+    // axi4_ref<32, 64, 4> mem_ref(mem_ptr);
     contextp->timeInc(1);
-    
-    // cout << "mem_ref arvalid\t" << (unsigned long)mem_ref.arvalid << endl;
-    // cout << "mem_ref arready\t" << (unsigned long)mem_ref.arready << endl;
+    // mem_sigs.update_input(mem_ref);
     top->eval();
-    // cout << "mem_sigs_ref arvalid\t" << (unsigned long)mem_sigs_ref.arvalid << endl;
-    // cout << "mem_sigs_ref arready\t" << (unsigned long)mem_sigs_ref.arready << endl;
-
-
+    // axi_mem.beat(mem_sigs_ref); // read channel + write channel
+    // mem_sigs.update_output(mem_ref);
+    inst_num += 1;
+    // if(inst_num >= (4429176 - 5000))tfp->dump(contextp->time());
+    // if((inst_num >= (3116900 - 200)) && (inst_num <= (3116900 + 2000)))tfp->dump(contextp->time());
     tfp->dump(contextp->time());
+    // if(top->io_mem_addr == 0x80013404)printf("pc:0x%x, wdata:0x%x, inst_num:%ld\n", top->io_pc, top->io_mem_wdata, inst_num);
+    // printf("inst_num: %ld\n", inst_num);
 }
 
 void single_cycle() 
@@ -93,30 +99,10 @@ void single_cycle()
     assert(mem_ptr.check());
     axi4_ref<32, 64, 4> mem_ref(mem_ptr);
 	top->clock = 0; step_and_dump_wave();
-    // cout << "before clock=1"<<endl;
-    // cout << "mem_ref arvalid\t" << (unsigned long)mem_ref.arvalid << endl;
-    // cout << "mem_ref arready\t" << (unsigned long)mem_ref.arready << endl;
-    // cout << "mem_ptr arvalid\t" << (unsigned long)*mem_ptr.arvalid << endl;
-    // cout << "mem_ptr arready\t" << (unsigned long)*mem_ptr.arready << endl;
-    // cout << "top arvalid\t" << (unsigned long)top->io_master_arvalid << endl;
-    // cout << "top arready\t" << (unsigned long)top->io_master_arready << endl;
-    // cout << "mem_ref rvalid\t" << (unsigned long)mem_ref.rvalid << endl;
-    // cout << "mem_ref rready\t" << (unsigned long)mem_ref.rready << endl;
     mem_sigs.update_input(mem_ref);
 	top->clock = 1; step_and_dump_wave();
-    // cout << "top arvalid\t" << (unsigned long)top->io_master_arvalid << endl;
-    // cout << "top arready\t" << (unsigned long)top->io_master_arready << endl;
     axi_mem.beat(mem_sigs_ref); // read channel + write channel
     mem_sigs.update_output(mem_ref);
-    // cout << "after clock=1"<<endl;
-    // cout << "mem_ref arvalid\t" << (unsigned long)mem_ref.arvalid << endl;
-    // cout << "mem_ref arready\t" << (unsigned long)mem_ref.arready << endl;
-    // cout << "mem_ptr arvalid\t" << (unsigned long)*mem_ptr.arvalid << endl;
-    // cout << "mem_ptr arready\t" << (unsigned long)*mem_ptr.arready << endl;
-    // cout << "top arvalid\t" << (unsigned long)top->io_master_arvalid << endl;
-    // cout << "top arready\t" << (unsigned long)top->io_master_arready << endl;
-    // cout << "mem_ref rvalid\t" << (unsigned long)mem_ref.rvalid << endl;
-    // cout << "mem_ref rready\t" << (unsigned long)mem_ref.rready << endl;
 }
 
 void reset(int n)

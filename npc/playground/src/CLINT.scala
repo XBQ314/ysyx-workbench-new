@@ -20,9 +20,20 @@ class CLINT extends Module
         val mepc_out = Output(UInt(64.W))
         val mcause_out = Output(UInt(64.W))
 
+        val mtime_enw = Input(Bool())
+        val mtime_in = Input(UInt(64.W))
+        val mtimecmp_in = Input(UInt(64.W))
+
         val int_jump_flag = Output(Bool())
         val int_jump_add = Output(UInt(64.W))
     })
+    val mtime = RegInit(0.U(64.W))
+    val mtimecmp = RegInit(0.U(64.W))
+    mtime := Mux(mtime_enw, mtime_in, mtime + 1.U)
+    mtimecmp := Mux(mtime_enw, mtimecmp_in, mtimecmp)
+    val time_int_flag = Wire(Bool())
+    time_int_flag := (mtime > mtimecmp)
+
     val INT_IDLE = "b00".U
     val INT_SYNC = "b01".U
     val INT_ASYNC = "b10".U
@@ -32,7 +43,7 @@ class CLINT extends Module
     when(io.inst === "b0000000_00000_00000_000_00000_11100_11".U) // ecall
     {
         int_state := INT_SYNC
-    }.elsewhen(io.int_flag && io.global_int_en)
+    }.elsewhen(io.int_flag && (io.global_int_en || time_int_flag))
     {
         int_state := INT_ASYNC
     }.elsewhen(io.inst === "b0011000_00010_00000_000_00000_11100_11".U) // mret
