@@ -75,12 +75,16 @@ void difftest_check(struct npc_reg_struct* nemu_regs)
         printf("At pc=%lx\n", npc_regs.pc);
         if(npc_regs.mstatus != nemu_regs->mstatus)
         printf("(npc_mstatus = %lx) != (nemu_mstatus = %lx)\n", npc_regs.mstatus, nemu_regs->mstatus);
+        if(npc_regs.mie != nemu_regs->mie)
+        printf("(npc_mie = %lx) != (nemu_mie = %lx)\n", npc_regs.mie, nemu_regs->mie);
         if(npc_regs.mtvec != nemu_regs->mtvec)
         printf("(npc_mtvec = %lx) != (nemu_mtvec = %lx)\n", npc_regs.mtvec, nemu_regs->mtvec);
         if(npc_regs.mepc != nemu_regs->mepc)
         printf("(npc_mepc = %lx) != (nemu_mepc = %lx)\n", npc_regs.mepc, nemu_regs->mepc);
         if(npc_regs.mcause != nemu_regs->mcause)
         printf("(npc_mcause = %lx) != (nemu_mcause = %lx)\n", npc_regs.mcause, nemu_regs->mcause);
+        if(npc_regs.mip != nemu_regs->mip)
+        printf("(npc_mip = %lx) != (nemu_mip = %lx)\n", npc_regs.mip, nemu_regs->mip);
         PRINT_ATTR_REC
     }
     return;

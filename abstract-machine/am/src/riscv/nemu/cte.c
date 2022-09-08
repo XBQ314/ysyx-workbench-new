@@ -76,11 +76,13 @@ void iset(bool enable)
   if(enable)
   {
     asm volatile("csrsi mstatus, 8");
+    asm volatile("csrsi mie, 0x80");
     //set_csr(mie, MIP_MTIP);
   }
   else
   {
     asm volatile("csrci mstatus, 8");
+    asm volatile("csrci mstatus, 0x80");
     //clear_csr(mie, MIP_MTIP);
   }
 }

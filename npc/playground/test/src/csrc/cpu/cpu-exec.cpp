@@ -1,7 +1,7 @@
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include "verilated_dpi.h"
-#include "Vysyx_22040154_RV64Top.h"
+#include "Vysyx_220154_RV64Top.h"
 #include <stdio.h>
 #include "reg.h"
 #include "cpu.h"
@@ -17,14 +17,14 @@ using namespace std;
 
 #define CONFIG_ITRACE 0
 #define CONFIG_DIFFTEST 1
-#define CONFIG_WATCHPOINT 1
+#define CONFIG_WATCHPOINT 0
 
 long inst_num=0;
 
 VerilatedContext* contextp = NULL;
 VerilatedVcdC* tfp = NULL;
 
-Vysyx_22040154_RV64Top* top;
+Vysyx_220154_RV64Top* top;
 extern axi4_mem <32,64,4> axi_mem;
 axi4_ptr <32, 64, 4> mem_ptr;
 axi4<32, 64, 4> mem_sigs;
@@ -35,7 +35,7 @@ extern uint64_t NPC_PC;
 bool skip_difftest = false;
 uint64_t skipdiff_pc = 0;
 
-void connect_wire(axi4_ptr <32,64,4> &mem_ptr, Vysyx_22040154_RV64Top *top)
+void connect_wire(axi4_ptr <32,64,4> &mem_ptr, Vysyx_220154_RV64Top *top)
 {
     // connect
     // mem
@@ -117,7 +117,7 @@ void sim_init()
 {
   contextp = new VerilatedContext;
   tfp = new VerilatedVcdC;
-  top = new Vysyx_22040154_RV64Top;
+  top = new Vysyx_220154_RV64Top;
   contextp->traceEverOn(true);
   top->trace(tfp, 0);
   tfp->open("./wavedata/VRV64Top.vcd");

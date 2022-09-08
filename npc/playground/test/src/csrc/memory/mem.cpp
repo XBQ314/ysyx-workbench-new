@@ -1,7 +1,7 @@
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include "verilated_dpi.h"
-#include "Vysyx_22040154_RV64Top.h"
+#include "Vysyx_220154_RV64Top.h"
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
@@ -22,7 +22,7 @@ extern long inst_num;
     // 0x00570713, // addi a4,a4,5
     // 0x00100073, // ebreak
 static char *img_file = NULL;
-extern Vysyx_22040154_RV64Top* top;
+extern Vysyx_220154_RV64Top* top;
 // 0x00009117, //auipc	sp,0x9
 // 0x00000513, // li	a0,0
 // 0x00258593, // addi a1,a1,2
@@ -98,6 +98,7 @@ extern "C" void pmem_read(long long raddr, long long *rdata) // Load
         // long long tmp = gettime();
         mmio_flag = true;
         *rdata = gettime();
+        // printf("rdata:%lld\n", &rdata);
     }
 
     if(raddr < 0x80000000 || raddr >= 0x88000000)return;
@@ -200,6 +201,7 @@ long load_img(char* img_file_name)
     assert(ret == 1);
     
     fclose(fp);
+
     axi_mem.load_binary(img_file_name, 0x80000000);
     return size;
 }

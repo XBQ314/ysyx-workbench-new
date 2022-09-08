@@ -1,7 +1,7 @@
 import chisel3._
 import chisel3.util._
 
-class ysyx_22040154_MEM_DPI extends BlackBox with HasBlackBoxInline
+class ysyx_220154_MEM_DPI extends BlackBox with HasBlackBoxInline
 {
     val io = IO(new Bundle
     {
@@ -15,7 +15,7 @@ class ysyx_22040154_MEM_DPI extends BlackBox with HasBlackBoxInline
     })
     setInline("MEM_DPI.v",
                 """
-|module ysyx_22040154_MEM_DPI
+|module ysyx_220154_MEM_DPI
 |(
 |input clock,
 |input [63:0]raddr,

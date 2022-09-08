@@ -5,14 +5,15 @@ class MEMCTRL extends Module
 {
     val io = IO(new Bundle
     {
-        val loadstore_flag = Input(Bool())
-        val pc = Input(UInt(64.W))
-        val addr = Input(UInt(64.W))
-        val dcache_ready = Input(Bool())
+        val loadstore_flag  = Input(Bool())
+        val pc              = Input(UInt(64.W))
+        val addr            = Input(UInt(64.W))
+        val dcache_ready    = Input(Bool())
 
-        val dcache_valid = Output(Bool())
-        val memstall_req = Output(Bool())
-        val uncached_flag = Output(Bool())
+        val dcache_valid    = Output(Bool())
+        val memstall_req    = Output(Bool())
+        val uncached_flag   = Output(Bool())
+        val mtimecmp_flag   = Output(Bool())
     })
     val IDLE = "b000".U
     val LOADSTORE_VALID = "b001".U
@@ -24,6 +25,7 @@ class MEMCTRL extends Module
     io.dcache_valid := false.B
     io.memstall_req := false.B
     io.uncached_flag := (io.addr === "ha0000048".U(64.W) || io.addr === "ha00003f8".U(64.W))
+    io.mtimecmp_flag := io.addr === "h02004000".U(64.W)
     nxt_state := cur_state
     when(cur_state === IDLE)
     {

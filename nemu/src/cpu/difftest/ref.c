@@ -22,7 +22,7 @@ struct npc_reg_struct
 {
   word_t gpr[32];
   word_t pc;
-  word_t mstatus, mepc, mcause, mtvec;
+  word_t mstatus, mie, mtvec, mepc, mcause, mip;
 };
 
 void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) 
@@ -72,9 +72,11 @@ void difftest_regcpy(void *dut, bool direction)
     }
     cpu.pc = npc_regs->pc;
     cpu.mstatus = npc_regs->mstatus;
+    cpu.mie = npc_regs->mie;
     cpu.mepc = npc_regs->mepc;
     cpu.mcause = npc_regs->mcause;
     cpu.mtvec = npc_regs->mtvec;
+    cpu.mip = npc_regs->mip;
     // printf("nemu pc = npc pc = %lx\n", npc_regs->pc);
   }
   else if(direction == DIFFTEST_TO_DUT)
@@ -86,9 +88,11 @@ void difftest_regcpy(void *dut, bool direction)
     }
     ref_regs->pc = cpu.pc;
     ref_regs->mstatus = cpu.mstatus;
+    ref_regs->mie     = cpu.mie;
     ref_regs->mepc    = cpu.mepc;
     ref_regs->mcause  = cpu.mcause;
     ref_regs->mtvec   = cpu.mtvec;
+    ref_regs->mip     = cpu.mip;
   }
   return;
   // assert(0);

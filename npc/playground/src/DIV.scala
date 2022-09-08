@@ -1,7 +1,7 @@
 import chisel3._
 import chisel3.util._
 
-class ysyx_22040154_DIV extends BlackBox with HasBlackBoxInline
+class ysyx_220154_DIV extends BlackBox with HasBlackBoxInline
 {
     val io = IO(new Bundle
     {
@@ -25,7 +25,7 @@ class ysyx_22040154_DIV extends BlackBox with HasBlackBoxInline
     })
     setInline("DIV.v",
             """
-|module ysyx_22040154_DIV
+|module ysyx_220154_DIV
 |(
 |    input clock,
 |    input reset,

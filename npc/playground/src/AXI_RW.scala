@@ -2,7 +2,7 @@ import chisel3._
 import chisel3.util._
 import xbqpackage._
 
-class ysyx_22040154_axi_rw extends BlackBox with HasBlackBoxInline
+class ysyx_220154_axi_rw extends BlackBox with HasBlackBoxInline
 {
     val io = IO(new Bundle
     {
@@ -122,7 +122,7 @@ class ysyx_22040154_axi_rw extends BlackBox with HasBlackBoxInline
 |`define AXI_SIZE_BYTES_128                                  3'b111
 |
 |
-|module ysyx_22040154_axi_rw # (
+|module ysyx_220154_axi_rw # (
 |    parameter RW_DATA_WIDTH     = 64,
 |    parameter RW_ADDR_WIDTH     = 32,
 |    parameter AXI_DATA_WIDTH    = 64,
@@ -237,11 +237,13 @@ class ysyx_22040154_axi_rw extends BlackBox with HasBlackBoxInline
 |    
 |
 |    // ------------------Write Transaction------------------
-|    parameter AXI_SIZE      = $clog2(AXI_DATA_WIDTH / 8); //等于3
+|    // parameter AXI_SIZE      = $clog2(AXI_DATA_WIDTH / 8); //等于3
 |    wire [AXI_ID_WIDTH-1:0] axi_id              = {AXI_ID_WIDTH{1'b0}};
 |    wire [AXI_USER_WIDTH-1:0] axi_user          = {AXI_USER_WIDTH{1'b0}};
+|    wire [2:0]AXI_SIZE  = (rw_addr_i <=32'h1000_0fff && rw_addr_i >=32'h1000_0000 )?3'b0:
+|                          (rw_addr_i < 32'h8000_0000 )?3'b10:3'b11;
 |    wire [7:0] axi_len      =  8'b0 ;
-|    wire [2:0] axi_size     = AXI_SIZE[2:0]; // 以字节为单位,在这个设计中，如果是Lite则是64bits八字节, 查阅手册得知axi_size等于3时一次传输八个字�?
+|    wire [2:0] axi_size     = AXI_SIZE[2:0]; // 以字节为单位,在这个设计中,如果是Lite则是64bits八字节, 查阅手册得知axi_size等于3时一次传输八个字jie
 |    // 写地址通道  以下没有备注初始化信号的都可能是你需要产生和用到的
 |    assign axi_aw_valid_o   = (cur_state == AWVALID);                                                           // AXI_Lite
 |    assign axi_aw_addr_o    = rw_addr_i;                                                                        // AXI_Lite

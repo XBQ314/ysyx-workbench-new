@@ -1,6 +1,6 @@
 #include "verilated.h"
 #include "verilated_dpi.h"
-#include "Vysyx_22040154_RV64Top.h"
+#include "Vysyx_220154_RV64Top.h"
 #include <string.h>
 #include "reg.h"
 #include "utils.h"

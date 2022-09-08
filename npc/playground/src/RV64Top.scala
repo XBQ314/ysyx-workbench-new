@@ -143,26 +143,26 @@ class RV64Top extends Module
         val slave_rid        = Output(UInt(4.W))
     })
     val IFU0 = Module(new IFU())
-    val IFU_DPI0 = Module(new ysyx_22040154_IFU_DPI()) // verilog
+    // val IFU_DPI0 = Module(new ysyx_220154_IFU_DPI()) // verilog
     val IF2ID0 = Module(new IF2ID())
     val IDU0 = Module(new IDU())
     val ID2EX0 = Module(new ID2EX())
     val ALU0 = Module(new ALU())
-    val RegisterFiles0 = Module(new ysyx_22040154_RegisterFiles()) // verilog
+    val RegisterFiles0 = Module(new ysyx_220154_RegisterFiles()) // verilog
     val EX2MEM0 = Module(new EX2MEM())
     // val MEM0 = Module(new MEM())
     val MEMCTRL0 = Module(new MEMCTRL())
-    val MEM_DPI0 = Module(new ysyx_22040154_MEM_DPI()) // verilog
-    val LOADUNIT0 = Module(new ysyx_22040154_LOADUNIT()) // verilog
+    val MEM_DPI0 = Module(new ysyx_220154_MEM_DPI()) // verilog
+    val LOADUNIT0 = Module(new ysyx_220154_LOADUNIT()) // verilog
     val MEM2WB0 = Module(new MEM2WB())
     val CTRL0 = Module(new CTRL())
-    val CSR0 = Module(new ysyx_22040154_CSR()) // verilog
+    val CSR0 = Module(new ysyx_220154_CSR()) // verilog
     val CLINT0 = Module(new CLINT())
     val ICACHE_CTRL0 = Module(new CACHE_CTRL())
     val ICACHE0 = Module(new ICACHE())
     val DCACHE_CTRL0 = Module(new DCACHE_CTRL())
     val DCACHE0 = Module(new DCACHE())
-    val AXIRW0 = Module(new ysyx_22040154_axi_rw()) // verilog
+    val AXIRW0 = Module(new ysyx_220154_axi_rw()) // verilog
     val AXI_ARIBITER0 = Module(new AXI_ARIBITER())
 
     //IF and ID
@@ -287,6 +287,7 @@ class RV64Top extends Module
     ID2EX0.io.IDclint_mstatus   := CLINT0.io.mstatus_out
     ID2EX0.io.IDclint_mepc      := CLINT0.io.mepc_out
     ID2EX0.io.IDclint_mcause    := CLINT0.io.mcause_out
+    ID2EX0.io.IDclint_mip       := CLINT0.io.mip_out
     ID2EX0.io.IDdiv_flag        := IDU0.io.div_flag
     ID2EX0.io.IDdiv_signed      := IDU0.io.div_signed
     ID2EX0.io.IDmul_flag        := IDU0.io.mul_flag
@@ -327,6 +328,8 @@ class RV64Top extends Module
     CLINT0.io.mstatus_in    := CSR0.io.mstatus_out
     CLINT0.io.mepc_in       := CSR0.io.mepc_out
     CLINT0.io.mtvec_in      := CSR0.io.mtvec_out
+    CLINT0.io.mip_in        := CSR0.io.mip_out
+    CLINT0.io.mie_in        := CSR0.io.mie_out
 
     //EX and MEM
     EX2MEM0.io.enEX2MEM         := !CTRL0.io.stall_ex2mem
@@ -347,6 +350,7 @@ class RV64Top extends Module
     EX2MEM0.io.EXclint_mstatus  := ID2EX0.io.EXclint_mstatus
     EX2MEM0.io.EXclint_mepc     := ID2EX0.io.EXclint_mepc  
     EX2MEM0.io.EXclint_mcause   := ID2EX0.io.EXclint_mcause
+    EX2MEM0.io.EXclint_mip      := ID2EX0.io.EXclint_mip
     EX2MEM0.io.EXLoad_flag      := ID2EX0.io.EXLoad_flag
     EX2MEM0.io.EXpc             := ID2EX0.io.EXpc
     EX2MEM0.io.EXinst           := ID2EX0.io.EXinst
@@ -363,7 +367,7 @@ class RV64Top extends Module
     DCACHE_CTRL0.io.cpu_enw     := (EX2MEM0.io.MEMwmask =/= "h00".U(8.W))
     DCACHE_CTRL0.io.cpu_wmask   := EX2MEM0.io.MEMwmask
     DCACHE_CTRL0.io.cpu_valid   := MEMCTRL0.io.dcache_valid
-    DCACHE_CTRL0.io.uncached_flag := MEMCTRL0.io.uncached_flag
+    // DCACHE_CTRL0.io.uncached_flag := MEMCTRL0.io.uncached_flag
 
     // DCACHE_CTRL0.io.mem_data := MEM_DPI0.io.rdata
     // DCACHE_CTRL0.io.mem_ready := true.B //!!!!!
@@ -398,11 +402,12 @@ class RV64Top extends Module
     MEM_DPI0.io.wdata := DCACHE_CTRL0.io.data2mem // DPI-C
     MEM_DPI0.io.wmask := DCACHE_CTRL0.io.wmask2mem // DPI-C
 
-    LOADUNIT0.io.raddr := EX2MEM0.io.MEMraddr
-    LOADUNIT0.io.rdata_native := DCACHE_CTRL0.io.data2cpu
-    LOADUNIT0.io.LOADctrl := EX2MEM0.io.MEMLOADctrl
+    LOADUNIT0.io.raddr          := EX2MEM0.io.MEMraddr
+    LOADUNIT0.io.rdata_native   := Mux(EX2MEM0.io.MEMraddr === "ha0000048".U, MEM_DPI0.io.rdata, DCACHE_CTRL0.io.data2cpu)
+    LOADUNIT0.io.LOADctrl       := EX2MEM0.io.MEMLOADctrl
 
-
+    CLINT0.io.mtimecmp_enw  := MEMCTRL0.io.mtimecmp_flag && (EX2MEM0.io.MEMwmask =/= 0.U)
+    CLINT0.io.mtimecmp_in   := EX2MEM0.io.MEMwdata
     //MEM and WB
     MEM2WB0.io.enMEM2WB    := !CTRL0.io.stall_mem2wb
     MEM2WB0.io.flush       := CTRL0.io.flush_mem2wb
@@ -411,7 +416,9 @@ class RV64Top extends Module
     MEM2WB0.io.MEMenw      := EX2MEM0.io.MEMenw
     MEM2WB0.io.MEMcsr_enw  := EX2MEM0.io.MEMcsr_enw
     // MEM2WB0.io.MEMwrb2reg  := Mux(MEM2WB0.io.MEMLoad_flag, MEM0.io.rdata, EX2MEM0.io.MEMwrb2reg)
-    MEM2WB0.io.MEMwrb2reg  := Mux(MEM2WB0.io.MEMLoad_flag, LOADUNIT0.io.rdata, EX2MEM0.io.MEMwrb2reg)
+    MEM2WB0.io.MEMwrb2reg  := Mux(MEM2WB0.io.MEMLoad_flag, 
+                              Mux(MEMCTRL0.io.mtimecmp_flag, CLINT0.io.mtimecmp_out, LOADUNIT0.io.rdata), 
+                              EX2MEM0.io.MEMwrb2reg)
     
     MEM2WB0.io.MEMcsr_rd   := EX2MEM0.io.MEMcsr_rd
     MEM2WB0.io.MEMwrb2csr  := EX2MEM0.io.MEMwrb2csr
@@ -421,9 +428,10 @@ class RV64Top extends Module
     MEM2WB0.io.MEMLOADctrl := EX2MEM0.io.MEMLOADctrl
     MEM2WB0.io.MEMwaddr    := EX2MEM0.io.MEMwaddr
     MEM2WB0.io.MEMclint_enw:= EX2MEM0.io.MEMclint_enw
-    MEM2WB0.io.MEMclint_mstatus:= EX2MEM0.io.MEMclint_mstatus
+    MEM2WB0.io.MEMclint_mstatus:=  EX2MEM0.io.MEMclint_mstatus
     MEM2WB0.io.MEMclint_mepc   :=  EX2MEM0.io.MEMclint_mepc  
     MEM2WB0.io.MEMclint_mcause :=  EX2MEM0.io.MEMclint_mcause
+    MEM2WB0.io.MEMclint_mip    :=  EX2MEM0.io.MEMclint_mip
     MEM2WB0.io.MEMLoad_flag:= EX2MEM0.io.MEMLoad_flag
     MEM2WB0.io.MEMpc       := EX2MEM0.io.MEMpc
     MEM2WB0.io.MEMinst     := EX2MEM0.io.MEMinst
@@ -441,7 +449,8 @@ class RV64Top extends Module
     CSR0.io.mstatus_in  := MEM2WB0.io.WBclint_mstatus
     CSR0.io.mepc_in     := MEM2WB0.io.WBclint_mepc
     CSR0.io.mcause_in   := MEM2WB0.io.WBclint_mcause
-    
+    CSR0.io.mip_in      := MEM2WB0.io.WBclint_mip
+
     //CTRL
     CTRL0.io.id_rs1         := IDU0.io.rs1
     CTRL0.io.id_rs2         := IDU0.io.rs2

@@ -20,6 +20,7 @@ class MEM2WB extends Module
         val MEMclint_mstatus = Input(UInt(64.W))
         val MEMclint_mepc =    Input(UInt(64.W))
         val MEMclint_mcause =  Input(UInt(64.W))
+        val MEMclint_mip =  Input(UInt(64.W))
         val MEMLoad_flag=Input(Bool())
         val MEMwaddr   = Input(UInt(64.W))
         val MEMpc      = Input(UInt(64.W))
@@ -38,6 +39,7 @@ class MEM2WB extends Module
         val WBclint_mstatus = Output(UInt(64.W))
         val WBclint_mepc    = Output(UInt(64.W))
         val WBclint_mcause  = Output(UInt(64.W))
+        val WBclint_mip     = Output(UInt(64.W))
         val WBLoad_flag= Output(Bool())
         val WBwaddr   = Output(UInt(64.W))
         val WBpc       = Output(UInt(64.W))
@@ -56,6 +58,7 @@ class MEM2WB extends Module
     val WBclint_mstatus_reg= RegEnable(io.MEMclint_mstatus, 0.U, io.enMEM2WB)
     val WBclint_mepc_reg   = RegEnable(io.MEMclint_mepc, 0.U, io.enMEM2WB)
     val WBclint_mcause_reg = RegEnable(io.MEMclint_mcause, 0.U, io.enMEM2WB)
+    val WBclint_mip_reg= RegEnable(io.MEMclint_mip, false.B, io.enMEM2WB)
     val WBLoad_flag_reg= RegEnable(io.MEMLoad_flag, false.B, io.enMEM2WB)
     val WBwaddr_reg    = RegEnable(io.MEMwaddr,     0.U, io.enMEM2WB)
     val WBpc_reg       = RegEnable(io.MEMpc,        0.U, io.enMEM2WB)
@@ -75,6 +78,7 @@ class MEM2WB extends Module
         WBclint_mstatus_reg := 0.U
         WBclint_mepc_reg    := 0.U
         WBclint_mcause_reg  := 0.U
+        WBclint_mip_reg     := 0.U
         WBLoad_flag_reg := false.B
         WBwaddr_reg     := 0.U
         WBpc_reg        := "h00000000".U(64.W)
@@ -92,7 +96,8 @@ class MEM2WB extends Module
     io.WBclint_enw  := WBclint_enw_reg
     io.WBclint_mstatus  := WBclint_mstatus_reg
     io.WBclint_mepc     := WBclint_mepc_reg   
-    io.WBclint_mcause   := WBclint_mcause_reg 
+    io.WBclint_mcause   := WBclint_mcause_reg
+    io.WBclint_mip      := WBclint_mip_reg
     io.WBLoad_flag  := WBLoad_flag_reg
     io.WBwaddr      := WBwaddr_reg
     io.WBpc         := WBpc_reg    

@@ -6,7 +6,7 @@ struct npc_reg_struct
 {
   uint64_t gpr[32];
   uint64_t pc;
-  uint64_t mstatus, mepc, mcause, mtvec;
+  uint64_t mstatus, mie, mtvec, mepc, mcause, mip;
 };
 extern struct npc_reg_struct npc_regs;
 

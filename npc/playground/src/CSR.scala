@@ -46,7 +46,7 @@ import chisel3.util._
 //     }
 // }
 
-class ysyx_22040154_CSR extends BlackBox with HasBlackBoxInline
+class ysyx_220154_CSR extends BlackBox with HasBlackBoxInline
 {
     val io = IO(new Bundle
     {
@@ -65,16 +65,19 @@ class ysyx_22040154_CSR extends BlackBox with HasBlackBoxInline
         val mstatus_in = Input(UInt(64.W))
         val mepc_in = Input(UInt(64.W))
         val mcause_in = Input(UInt(64.W))
+        val mip_in = Input(UInt(64.W))
 
         val global_int_en = Output(Bool())
         val mstatus_out = Output(UInt(64.W))
         val mtvec_out = Output(UInt(64.W))
         val mepc_out = Output(UInt(64.W))
+        val mip_out = Output(UInt(64.W))
+        val mie_out = Output(UInt(64.W))
         val csr_out = Output(UInt(64.W))
     })
     setInline("CSR.v",
                 """
-|module ysyx_22040154_CSR
+|module ysyx_220154_CSR
 |(
 |    input clock,
 |    input reset,
@@ -92,11 +95,14 @@ class ysyx_22040154_CSR extends BlackBox with HasBlackBoxInline
 |    input [63:0]mstatus_in,
 |    input [63:0]mepc_in,
 |    input [63:0]mcause_in,
+|    input [63:0]mip_in,
 |
 |    output global_int_en,
 |    output [63:0]mstatus_out,
 |    output [63:0]mtvec_out,
 |    output [63:0]mepc_out,
+|    output [63:0]mip_out,
+|    output [63:0]mie_out,
 |    output [63:0]csr_out
 |);
 |reg [63:0] mstatus;
@@ -140,11 +146,11 @@ class ysyx_22040154_CSR extends BlackBox with HasBlackBoxInline
 |                      (write_idx == 8'h04)?in_data:mie;
 |            mtvec   <=(clint_enw == 'd1)?mtvec:
 |                      (write_idx == 8'h05)?in_data:mtvec;
-|            mepc    <=(clint_enw == 'd1)?mepc_in:
+|            mepc    <=(clint_enw == 'd1)?(|mepc_in)?mepc_in:mepc:
 |                      (write_idx == 8'h41)?in_data:mepc;
 |            mcause  <=(clint_enw == 'd1)?mcause_in:
 |                      (write_idx == 8'h42)?in_data:mcause;
-|            mip     <=(clint_enw == 'd1)?mip:
+|            mip     <=(clint_enw == 'd1)?mip_in:
 |                      (write_idx == 8'h44)?in_data:mip;
 |        end
 |    end
@@ -154,6 +160,8 @@ class ysyx_22040154_CSR extends BlackBox with HasBlackBoxInline
 |assign mstatus_out = mstatus;
 |assign mtvec_out = mtvec;
 |assign mepc_out = mepc;
+|assign mip_out = mip;
+|assign mie_out = mie;
 |assign csr_out = (read_idx == 8'h00)?mstatus:
 |                 (read_idx == 8'h05)?mtvec:
 |                 (read_idx == 8'h41)?mepc:
