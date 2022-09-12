@@ -56,11 +56,12 @@ class DCACHE_CTRL extends Module
     val cur_state = RegNext(nxt_state, "b000".U)
     val wdata2cache_L64 = RegInit(0.U)
     val uncached_flag = Wire(Bool())
-    uncached_flag := ((io.cpu_addr === "ha0000048".U(64.W) || io.cpu_addr === "ha00003f8".U(64.W)))
-    // val uncached_memdata = RegInit(0.U(64.W))
+    // uncached_flag := ((io.cpu_addr === "ha0000048".U(64.W) || io.cpu_addr === "ha00003f8".U(64.W)))
+    uncached_flag := ((io.cpu_addr >= "h10000000".U(64.W) && io.cpu_addr <= "h10001fff".U(64.W)))
+    val uncached_memdata = RegInit(0.U(64.W))
     // 所有输出的默认值
     nxt_state := cur_state
-    io.data2cpu := Mux(uncached_flag, io.mem_data, 
+    io.data2cpu := Mux(uncached_flag, uncached_memdata, 
                    Mux(io.cpu_addr(3), io.cache_data(127, 64),io.cache_data(63, 0))) // 总是读取地址为`raddr & ~0x7ull`的8字节返回给`rdata`
     io.ready2cpu := false.B
 
@@ -159,10 +160,15 @@ class DCACHE_CTRL extends Module
             io.addr2mem := io.cpu_addr
             io.data2mem := io.cpu_data
             io.wmask2mem := io.cpu_wmask
-            io.valid2mem := false.B // 应该是为了禁止访存
-            io.enw2mem := false.B
+            // io.valid2mem := false.B // 应该是为了禁止访存
+            io.valid2mem := true.B
+            io.enw2mem := (io.cpu_wmask =/= 0.U)
             io.dcache_stall_req := false.B
-            nxt_state := CACHE_READ
+            when(io.mem_ready)
+            {
+                nxt_state := CACHE_READ
+                uncached_memdata := io.mem_data
+            }
         }
     }.elsewhen(cur_state === CACHE_READ) // 单端口RAM不支持同时读写,所以需要加一个单独的READ状态
     {

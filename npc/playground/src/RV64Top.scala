@@ -7,13 +7,13 @@ class RV64Top extends Module
 {
     val io = IO(new Bundle
     {
-        val pc = Output(UInt(64.W))
-        val inst = Output(UInt(32.W))
+        // val pc = Output(UInt(64.W))
+        // val inst = Output(UInt(32.W))
 
-        val mem_pc = Output(UInt(64.W))
-        val mem_addr = Output(UInt(64.W))
-        val mem_wdata = Output(UInt(64.W))
-        val enMEM2WB = Output(Bool())
+        // val mem_pc = Output(UInt(64.W))
+        // val mem_addr = Output(UInt(64.W))
+        // val mem_wdata = Output(UInt(64.W))
+        // val enMEM2WB = Output(Bool())
 
         // // Advanced eXtensible Interface
         // val axi_aw_ready_i = Input(UInt(1.W))
@@ -152,7 +152,7 @@ class RV64Top extends Module
     val EX2MEM0 = Module(new EX2MEM())
     // val MEM0 = Module(new MEM())
     val MEMCTRL0 = Module(new MEMCTRL())
-    val MEM_DPI0 = Module(new ysyx_220154_MEM_DPI()) // verilog
+    // val MEM_DPI0 = Module(new ysyx_220154_MEM_DPI()) // verilog
     val LOADUNIT0 = Module(new ysyx_220154_LOADUNIT()) // verilog
     val MEM2WB0 = Module(new MEM2WB())
     val CTRL0 = Module(new CTRL())
@@ -394,16 +394,17 @@ class RV64Top extends Module
     DCACHE0.io.in_dirty := DCACHE_CTRL0.io.dirty2cache
     DCACHE0.io.in_tag   := DCACHE_CTRL0.io.tag2cache
 
-    MEM_DPI0.io.clock := clock
+    // MEM_DPI0.io.clock := clock
     // MEM_DPI0.io.raddr := Mux(DCACHE_CTRL0.io.uart_dpi_flag, DCACHE_CTRL0.io.addr2mem, 0.U) // DPI-C
     // MEM_DPI0.io.waddr := Mux(DCACHE_CTRL0.io.uart_dpi_flag, DCACHE_CTRL0.io.addr2mem, 0.U) // DPI-C
-    MEM_DPI0.io.raddr := DCACHE_CTRL0.io.addr2mem // DPI-C
-    MEM_DPI0.io.waddr := DCACHE_CTRL0.io.addr2mem // DPI-C
-    MEM_DPI0.io.wdata := DCACHE_CTRL0.io.data2mem // DPI-C
-    MEM_DPI0.io.wmask := DCACHE_CTRL0.io.wmask2mem // DPI-C
+    // MEM_DPI0.io.raddr := DCACHE_CTRL0.io.addr2mem // DPI-C
+    // MEM_DPI0.io.waddr := DCACHE_CTRL0.io.addr2mem // DPI-C
+    // MEM_DPI0.io.wdata := DCACHE_CTRL0.io.data2mem // DPI-C
+    // MEM_DPI0.io.wmask := DCACHE_CTRL0.io.wmask2mem // DPI-C
 
     LOADUNIT0.io.raddr          := EX2MEM0.io.MEMraddr
-    LOADUNIT0.io.rdata_native   := Mux(EX2MEM0.io.MEMraddr === "ha0000048".U, MEM_DPI0.io.rdata, DCACHE_CTRL0.io.data2cpu)
+    // LOADUNIT0.io.rdata_native   := Mux(EX2MEM0.io.MEMraddr === "ha0000048".U, MEM_DPI0.io.rdata, DCACHE_CTRL0.io.data2cpu)
+    LOADUNIT0.io.rdata_native   := DCACHE_CTRL0.io.data2cpu
     LOADUNIT0.io.LOADctrl       := EX2MEM0.io.MEMLOADctrl
 
     CLINT0.io.mtimecmp_enw  := MEMCTRL0.io.mtimecmp_flag && (EX2MEM0.io.MEMwmask =/= 0.U)
@@ -485,12 +486,12 @@ class RV64Top extends Module
     AXI_ARIBITER0.io.data_read_o        := AXIRW0.io.data_read_o
 
     //top input
-    io.pc           := MEM2WB0.io.WBpc
-    io.inst         := MEM2WB0.io.WBinst
-    io.mem_pc       := EX2MEM0.io.MEMpc
-    io.mem_addr     := EX2MEM0.io.MEMwaddr
-    io.mem_wdata    := EX2MEM0.io.MEMwdata
-    io.enMEM2WB     := MEM2WB0.io.enMEM2WB
+    // io.pc           := MEM2WB0.io.WBpc
+    // io.inst         := MEM2WB0.io.WBinst
+    // io.mem_pc       := EX2MEM0.io.MEMpc
+    // io.mem_addr     := EX2MEM0.io.MEMwaddr
+    // io.mem_wdata    := EX2MEM0.io.MEMwdata
+    // io.enMEM2WB     := MEM2WB0.io.enMEM2WB
 
     // SOC AXI-Master
     io.master_awvalid  := AXIRW0.io.axi_aw_valid_o 
