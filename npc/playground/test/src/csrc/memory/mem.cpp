@@ -1,7 +1,7 @@
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include "verilated_dpi.h"
-#include "Vysyx_220154_RV64Top.h"
+#include "Vysyx_040154_RV64Top.h"
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
@@ -22,7 +22,7 @@ extern long inst_num;
     // 0x00570713, // addi a4,a4,5
     // 0x00100073, // ebreak
 static char *img_file = NULL;
-extern Vysyx_220154_RV64Top* top;
+extern Vysyx_040154_RV64Top* top;
 // 0x00009117, //auipc	sp,0x9
 // 0x00000513, // li	a0,0
 // 0x00258593, // addi a1,a1,2

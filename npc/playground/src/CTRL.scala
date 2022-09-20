@@ -7,6 +7,7 @@ class CTRL extends Module
     {
         val flushreq_id = Input(Bool())
         val flushreq_ex = Input(Bool())
+        val async_int_flag = Input(Bool())
 
         val ifu_stall_req = Input(Bool())
         val dcache_stall_req = Input(Bool())
@@ -62,7 +63,7 @@ class CTRL extends Module
     //     io.flush_ex2mem := true.B
     //     io.flush_mem2wb := true.B  
     // }.else
-    when(io.flushreq_ex) // B型指令
+    when(io.flushreq_ex || io.async_int_flag) // B型指令
     {
         // io.flush_icache := true.B
         io.flush_if2id  := true.B

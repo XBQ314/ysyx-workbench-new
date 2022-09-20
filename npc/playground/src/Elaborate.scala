@@ -14,5 +14,5 @@ object Elaborate extends App {
   (new chisel3.stage.ChiselStage).execute(args, Seq(
   chisel3.stage.ChiselGeneratorAnnotation(() => new RV64Top()),
   firrtl.stage.RunFirrtlTransformAnnotation(new AddModulePrefix()),
-  ModulePrefixAnnotation("ysyx_220154_")))
+  ModulePrefixAnnotation("ysyx_040154_")))
 }

@@ -43,22 +43,34 @@ class DCACHE_CTRL extends Module
 
         val dcache_stall_req = Output(Bool())
     })
-    val IDLE = "b000".U
-    val COMPARE_TAG = "b001".U
-    val CACHE_READ = "b100".U
-    val ALLOCATE_L64 = "b010".U
-    val ALLOCATE_H64 = "b101".U
-    val WRITE_BACKL64 = "b011".U
-    val WRITE_BACKH64 = "b110".U
-    // val UNCACHED = "b111".U
+    val IDLE = "b0000".U
+    val COMPARE_TAG = "b0001".U
+    val CACHE_READ = "b0010".U
+    val ALLOCATE_L64 = "b0011".U
+    val ALLOCATE_H64 = "b0100".U
+    val WRITE_BACKL64 = "b0101".U
+    val WRITE_BACKH64 = "b0110".U
+    val ALLOCATE_03 = "b1000".U
+    val ALLOCATE_47 = "b1001".U
+    val ALLOCATE_8b = "b1010".U
+    val ALLOCATE_cf = "b1011".U
 
-    val nxt_state = Wire(UInt(3.W))
-    val cur_state = RegNext(nxt_state, "b000".U)
+
+    val nxt_state = Wire(UInt(4.W))
+    val cur_state = RegNext(nxt_state, "b0000".U)
     val wdata2cache_L64 = RegInit(0.U)
-    val uncached_flag = Wire(Bool())
+    val clint_flag      = Wire(Bool())
+    val uncached_flag   = Wire(Bool())
+    val flashXIP_flag   = Wire(Bool())
+
     // uncached_flag := ((io.cpu_addr === "ha0000048".U(64.W) || io.cpu_addr === "ha00003f8".U(64.W)))
-    uncached_flag := ((io.cpu_addr >= "h10000000".U(64.W) && io.cpu_addr <= "h10001fff".U(64.W)))
+    clint_flag      := ((io.cpu_addr >= "h02000000".U(64.W) && io.cpu_addr <= "h0200Bfff".U(64.W)))
+    uncached_flag   := ((io.cpu_addr >= "h10000000".U(64.W) && io.cpu_addr <= "h10001fff".U(64.W)))
+    flashXIP_flag   := ((io.cpu_addr >= "h30000000".U(64.W) && io.cpu_addr <= "h3fffffff".U(64.W)))
     val uncached_memdata = RegInit(0.U(64.W))
+    val wdata2cache_03 = RegInit(0.U(32.W))
+    val wdata2cache_47 = RegInit(0.U(32.W))
+    val wdata2cache_8b = RegInit(0.U(32.W))
     // 所有输出的默认值
     nxt_state := cur_state
     io.data2cpu := Mux(uncached_flag, uncached_memdata, 
@@ -110,7 +122,7 @@ class DCACHE_CTRL extends Module
     {
         io.ready2cpu := true.B
         io.dcache_stall_req := false.B
-        when(io.cpu_valid)
+        when(io.cpu_valid && ~clint_flag) // 因为CLINT是core内部实现的外设, 所以不需要发出访存信号(无论是cache还是mem都不需要)
         {
             nxt_state := COMPARE_TAG
         }.otherwise
@@ -146,7 +158,13 @@ class DCACHE_CTRL extends Module
                 // 块无效或者未被重写过,所以不需要写回mem中,直接进入分配状态
                 when(io.cache_valid === 0.U || io.cache_dirty === 0.U)
                 {
-                    nxt_state := ALLOCATE_L64
+                    when(flashXIP_flag)
+                    {
+                        nxt_state := ALLOCATE_03
+                    }.otherwise
+                    {
+                        nxt_state := ALLOCATE_L64
+                    }
                 }.otherwise // 需要写回mem
                 {
                     // 111111111111111111111111111111111111111
@@ -202,7 +220,58 @@ class DCACHE_CTRL extends Module
         {
             nxt_state := ALLOCATE_H64
         }
-    }.elsewhen(cur_state === WRITE_BACKL64)
+    }.elsewhen(cur_state === ALLOCATE_03)
+    {
+        io.addr2mem := Cat(io.cpu_addr(63, 4), "h0".U(4.W))
+        io.valid2mem := true.B
+        when(io.mem_ready)
+        {
+            wdata2cache_03 := io.mem_data(31, 0)
+            nxt_state := ALLOCATE_47
+        }.otherwise
+        {
+            nxt_state := ALLOCATE_03
+        }
+    }.elsewhen(cur_state === ALLOCATE_47)
+    {
+        io.addr2mem := Cat(io.cpu_addr(63, 4), "h4".U(4.W))
+        io.valid2mem := true.B
+        when(io.mem_ready)
+        {
+            wdata2cache_47 := io.mem_data(31, 0)
+            nxt_state := ALLOCATE_8b
+        }.otherwise
+        {
+            nxt_state := ALLOCATE_47
+        }
+    }.elsewhen(cur_state === ALLOCATE_8b)
+    {
+        io.addr2mem := Cat(io.cpu_addr(63, 4), "h8".U(4.W))
+        io.valid2mem := true.B
+        when(io.mem_ready)
+        {
+            wdata2cache_8b := io.mem_data(31, 0)
+            nxt_state := ALLOCATE_cf
+        }.otherwise
+        {
+            nxt_state := ALLOCATE_8b
+        }
+    }.elsewhen(cur_state === ALLOCATE_cf)
+    {
+        io.addr2mem := Cat(io.cpu_addr(63, 4), "hc".U(4.W))
+        io.valid2mem := true.B
+        when(io.mem_ready)
+        {
+            io.enw2cache := true.B // 对cache真正的分配写入发生在ALLOCATE_H64
+            io.wdata2cache := Cat(io.mem_data(31, 0), wdata2cache_8b, wdata2cache_47, wdata2cache_03)
+            io.wmask2cache := "hffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff".U(128.W)
+            nxt_state := COMPARE_TAG
+        }.otherwise
+        {
+            nxt_state := ALLOCATE_cf
+        }
+    }
+    .elsewhen(cur_state === WRITE_BACKL64)
     {
         io.addr2mem := Cat(oldtag, io.index2cache, "b0000".U(4.W))
         io.data2mem := io.cache_data(63, 0)
@@ -231,7 +300,13 @@ class DCACHE_CTRL extends Module
             // 111111111111111111111111111111111111111
             io.enw2mem := false.B
             // io.valid2mem := false.B
-            nxt_state := ALLOCATE_L64
+            when(flashXIP_flag)
+            {
+                nxt_state := ALLOCATE_03
+            }.otherwise
+            {
+                nxt_state := ALLOCATE_L64
+            }
         }.otherwise
         {
             nxt_state := WRITE_BACKH64

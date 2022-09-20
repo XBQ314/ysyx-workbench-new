@@ -46,7 +46,7 @@ import chisel3.util._
 //     }
 // }
 
-class ysyx_220154_CSR extends BlackBox with HasBlackBoxInline
+class ysyx_040154_CSR extends BlackBox with HasBlackBoxInline
 {
     val io = IO(new Bundle
     {
@@ -72,12 +72,13 @@ class ysyx_220154_CSR extends BlackBox with HasBlackBoxInline
         val mtvec_out = Output(UInt(64.W))
         val mepc_out = Output(UInt(64.W))
         val mip_out = Output(UInt(64.W))
+        val mcause_out = Output(UInt(64.W))
         val mie_out = Output(UInt(64.W))
         val csr_out = Output(UInt(64.W))
     })
     setInline("CSR.v",
                 """
-|module ysyx_220154_CSR
+|module ysyx_040154_CSR
 |(
 |    input clock,
 |    input reset,
@@ -101,6 +102,7 @@ class ysyx_220154_CSR extends BlackBox with HasBlackBoxInline
 |    output [63:0]mstatus_out,
 |    output [63:0]mtvec_out,
 |    output [63:0]mepc_out,
+|    output [63:0]mcause_out,
 |    output [63:0]mip_out,
 |    output [63:0]mie_out,
 |    output [63:0]csr_out
@@ -160,12 +162,15 @@ class ysyx_220154_CSR extends BlackBox with HasBlackBoxInline
 |assign mstatus_out = mstatus;
 |assign mtvec_out = mtvec;
 |assign mepc_out = mepc;
+|assign mcause_out = mcause;
 |assign mip_out = mip;
 |assign mie_out = mie;
 |assign csr_out = (read_idx == 8'h00)?mstatus:
+|                 (read_idx == 8'h04)?mie:
 |                 (read_idx == 8'h05)?mtvec:
 |                 (read_idx == 8'h41)?mepc:
-|                 (read_idx == 8'h42)?mcause:'d0;
+|                 (read_idx == 8'h42)?mcause:
+|                 (read_idx == 8'h44)?mip:'d0;
 |
 |endmodule
 |

@@ -7,6 +7,7 @@ class ID2EX extends Module
     {
         val enID2EX = Input(Bool())
         val flush = Input(Bool())
+        val async_int_flag = Input(Bool())
 
         val IDimm = Input(UInt(64.W))
         val IDzimm = Input(UInt(5.W))
@@ -108,11 +109,11 @@ class ID2EX extends Module
         EXregout2_reg   := 0.U
         EXcsr_rd_reg    := 0.U
         EXcsrout_reg    := 0.U
-        EXclint_enw_reg := false.B
-        EXclint_mstatus_reg := 0.U
-        EXclint_mepc_reg    := 0.U
-        EXclint_mcause_reg  := 0.U
-        EXclint_mip_reg     := 0.U
+        EXclint_enw_reg := Mux(io.async_int_flag, io.IDclint_enw,false.B)
+        EXclint_mstatus_reg := Mux(io.async_int_flag, io.IDclint_mstatus,0.U)
+        EXclint_mepc_reg    := Mux(io.async_int_flag, io.IDclint_mepc   ,0.U)
+        EXclint_mcause_reg  := Mux(io.async_int_flag, io.IDclint_mcause ,0.U)
+        EXclint_mip_reg     := Mux(io.async_int_flag, io.IDclint_mip    ,0.U)
         EXdiv_flag_reg  := false.B
         EXdiv_signed_reg:= false.B
         EXmul_flag_reg  := false.B

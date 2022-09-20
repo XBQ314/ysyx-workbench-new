@@ -1,7 +1,7 @@
 import chisel3._
 import chisel3.util._
 
-class ysyx_220154_MUL extends BlackBox with HasBlackBoxInline
+class ysyx_040154_MUL extends BlackBox with HasBlackBoxInline
 {
     val io = IO(new Bundle
     {
@@ -25,7 +25,7 @@ class ysyx_220154_MUL extends BlackBox with HasBlackBoxInline
     })
     setInline("MUL.v",
             """
-|module ysyx_220154_MUL
+|module ysyx_040154_MUL
 |(
 |    input clock,
 |    input reset,

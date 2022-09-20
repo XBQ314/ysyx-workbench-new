@@ -44,7 +44,6 @@ class CACHE_CTRL extends Module
     val CACHE_READ = "b0010".U
     val ALLOCATE_L64 = "b0011".U
     val ALLOCATE_H64 = "b0100".U
-    val UNCACHED = "b0101".U
     val uncached_flag = Wire(Bool())
     uncached_flag := (io.cpu_addr < "h80000000".U(64.W))
     val uncached_memdata = RegInit(0.U(64.W))

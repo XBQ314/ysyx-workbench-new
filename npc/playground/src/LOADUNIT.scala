@@ -1,7 +1,7 @@
 import chisel3._
 import chisel3.util._
 
-class ysyx_220154_LOADUNIT extends BlackBox with HasBlackBoxInline
+class ysyx_040154_LOADUNIT extends BlackBox with HasBlackBoxInline
 {
     val io = IO(new Bundle
     {
@@ -13,7 +13,7 @@ class ysyx_220154_LOADUNIT extends BlackBox with HasBlackBoxInline
     })
     setInline("LOADUNIT.v",
                 """
-|module ysyx_220154_LOADUNIT
+|module ysyx_040154_LOADUNIT
 |(
 |input [63:0]raddr,
 |input [63:0]rdata_native,

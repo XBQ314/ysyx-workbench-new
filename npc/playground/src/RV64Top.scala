@@ -141,28 +141,85 @@ class RV64Top extends Module
         val slave_rdata      = Output(UInt(64.W))  
         val slave_rlast      = Output(UInt(1.W))  
         val slave_rid        = Output(UInt(4.W))
+
+        // SRAM
+        val sram0_addr      = Output(UInt(6.W))
+        val sram0_cen       = Output(UInt(1.W))
+        val sram0_wen       = Output(UInt(1.W))
+        val sram0_wmask     = Output(UInt(128.W))
+        val sram0_wdata     = Output(UInt(128.W))
+        val sram0_rdata     = Input(UInt(128.W))
+
+        val sram1_addr      = Output(UInt(6.W))
+        val sram1_cen       = Output(UInt(1.W))
+        val sram1_wen       = Output(UInt(1.W))
+        val sram1_wmask     = Output(UInt(128.W))
+        val sram1_wdata     = Output(UInt(128.W))
+        val sram1_rdata     = Input(UInt(128.W))
+
+        val sram2_addr      = Output(UInt(6.W))
+        val sram2_cen       = Output(UInt(1.W))
+        val sram2_wen       = Output(UInt(1.W))
+        val sram2_wmask     = Output(UInt(128.W))
+        val sram2_wdata     = Output(UInt(128.W))
+        val sram2_rdata     = Input(UInt(128.W))
+
+        val sram3_addr      = Output(UInt(6.W))
+        val sram3_cen       = Output(UInt(1.W))
+        val sram3_wen       = Output(UInt(1.W))
+        val sram3_wmask     = Output(UInt(128.W))
+        val sram3_wdata     = Output(UInt(128.W))
+        val sram3_rdata     = Input(UInt(128.W))
+
+        val sram4_addr      = Output(UInt(6.W))
+        val sram4_cen       = Output(UInt(1.W))
+        val sram4_wen       = Output(UInt(1.W))
+        val sram4_wmask     = Output(UInt(128.W))
+        val sram4_wdata     = Output(UInt(128.W))
+        val sram4_rdata     = Input(UInt(128.W))
+
+        val sram5_addr      = Output(UInt(6.W))
+        val sram5_cen       = Output(UInt(1.W))
+        val sram5_wen       = Output(UInt(1.W))
+        val sram5_wmask     = Output(UInt(128.W))
+        val sram5_wdata     = Output(UInt(128.W))
+        val sram5_rdata     = Input(UInt(128.W))
+
+        val sram6_addr      = Output(UInt(6.W))
+        val sram6_cen       = Output(UInt(1.W))
+        val sram6_wen       = Output(UInt(1.W))
+        val sram6_wmask     = Output(UInt(128.W))
+        val sram6_wdata     = Output(UInt(128.W))
+        val sram6_rdata     = Input(UInt(128.W))
+
+        val sram7_addr      = Output(UInt(6.W))
+        val sram7_cen       = Output(UInt(1.W))
+        val sram7_wen       = Output(UInt(1.W))
+        val sram7_wmask     = Output(UInt(128.W))
+        val sram7_wdata     = Output(UInt(128.W))
+        val sram7_rdata     = Input(UInt(128.W))
     })
     val IFU0 = Module(new IFU())
-    // val IFU_DPI0 = Module(new ysyx_220154_IFU_DPI()) // verilog
+    // val IFU_DPI0 = Module(new ysyx_040154_IFU_DPI()) // verilog
     val IF2ID0 = Module(new IF2ID())
     val IDU0 = Module(new IDU())
     val ID2EX0 = Module(new ID2EX())
     val ALU0 = Module(new ALU())
-    val RegisterFiles0 = Module(new ysyx_220154_RegisterFiles()) // verilog
+    val RegisterFiles0 = Module(new ysyx_040154_RegisterFiles()) // verilog
     val EX2MEM0 = Module(new EX2MEM())
     // val MEM0 = Module(new MEM())
     val MEMCTRL0 = Module(new MEMCTRL())
-    // val MEM_DPI0 = Module(new ysyx_220154_MEM_DPI()) // verilog
-    val LOADUNIT0 = Module(new ysyx_220154_LOADUNIT()) // verilog
+    // val MEM_DPI0 = Module(new ysyx_040154_MEM_DPI()) // verilog
+    val LOADUNIT0 = Module(new ysyx_040154_LOADUNIT()) // verilog
     val MEM2WB0 = Module(new MEM2WB())
     val CTRL0 = Module(new CTRL())
-    val CSR0 = Module(new ysyx_220154_CSR()) // verilog
+    val CSR0 = Module(new ysyx_040154_CSR()) // verilog
     val CLINT0 = Module(new CLINT())
     val ICACHE_CTRL0 = Module(new CACHE_CTRL())
     val ICACHE0 = Module(new ICACHE())
     val DCACHE_CTRL0 = Module(new DCACHE_CTRL())
     val DCACHE0 = Module(new DCACHE())
-    val AXIRW0 = Module(new ysyx_220154_axi_rw()) // verilog
+    val AXIRW0 = Module(new ysyx_040154_axi_rw()) // verilog
     val AXI_ARIBITER0 = Module(new AXI_ARIBITER())
 
     //IF and ID
@@ -241,7 +298,7 @@ class RV64Top extends Module
     ICACHE_CTRL0.io.cache_dirty := ICACHE0.io.dirty
     ICACHE_CTRL0.io.cache_tag := ICACHE0.io.tag
 
-    ICACHE0.io.CLK := clock
+    // ICACHE0.io.CLK := clock
     ICACHE0.io.index := ICACHE_CTRL0.io.index2cache
     ICACHE0.io.enw := ICACHE_CTRL0.io.enw2cache
     ICACHE0.io.tag_enw := ICACHE_CTRL0.io.tagenw2cache
@@ -249,9 +306,14 @@ class RV64Top extends Module
     ICACHE0.io.in_valid := ICACHE_CTRL0.io.valid2cache
     ICACHE0.io.in_dirty := ICACHE_CTRL0.io.dirty2cache
     ICACHE0.io.in_tag := ICACHE_CTRL0.io.tag2cache
+    ICACHE0.io.sram0_rdata := io.sram0_rdata
+    ICACHE0.io.sram1_rdata := io.sram1_rdata
+    ICACHE0.io.sram2_rdata := io.sram2_rdata
+    ICACHE0.io.sram3_rdata := io.sram3_rdata
     //ID and EX
     ID2EX0.io.enID2EX   := !CTRL0.io.stall_id2ex
     ID2EX0.io.flush     := CTRL0.io.flush_id2ex
+    ID2EX0.io.async_int_flag     := CLINT0.io.async_int_flag
 
     ID2EX0.io.IDimm         := IDU0.io.imm
     ID2EX0.io.IDzimm        := IDU0.io.zimm
@@ -322,14 +384,18 @@ class RV64Top extends Module
     CSR0.io.read_idx  := IDU0.io.csridx
 
     CLINT0.io.inst          := IF2ID0.io.IDinst
-    CLINT0.io.pc            := IF2ID0.io.IDpc
+    CLINT0.io.IFpc          := IF2ID0.io.IFpc
+    CLINT0.io.IDpc          := IF2ID0.io.IDpc
     CLINT0.io.global_int_en := CSR0.io.global_int_en
     CLINT0.io.int_flag      := io.interrupt
     CLINT0.io.mstatus_in    := CSR0.io.mstatus_out
     CLINT0.io.mepc_in       := CSR0.io.mepc_out
     CLINT0.io.mtvec_in      := CSR0.io.mtvec_out
+    CLINT0.io.mcause_in     := CSR0.io.mcause_out
     CLINT0.io.mip_in        := CSR0.io.mip_out
     CLINT0.io.mie_in        := CSR0.io.mie_out
+    CLINT0.io.flushreq_ex   := ALU0.io.flush_req
+    CLINT0.io.EXpc         := ID2EX0.io.EXpc
 
     //EX and MEM
     EX2MEM0.io.enEX2MEM         := !CTRL0.io.stall_ex2mem
@@ -384,7 +450,7 @@ class RV64Top extends Module
     MEMCTRL0.io.pc      := EX2MEM0.io.MEMpc
     MEMCTRL0.io.addr    := EX2MEM0.io.MEMraddr  
 
-    DCACHE0.io.CLK      := clock
+    // DCACHE0.io.CLK      := clock
     DCACHE0.io.index    := DCACHE_CTRL0.io.index2cache
     DCACHE0.io.enw      := DCACHE_CTRL0.io.enw2cache
     DCACHE0.io.tag_enw  := DCACHE_CTRL0.io.tagenw2cache
@@ -393,7 +459,10 @@ class RV64Top extends Module
     DCACHE0.io.in_valid := DCACHE_CTRL0.io.valid2cache
     DCACHE0.io.in_dirty := DCACHE_CTRL0.io.dirty2cache
     DCACHE0.io.in_tag   := DCACHE_CTRL0.io.tag2cache
-
+    DCACHE0.io.sram4_rdata := io.sram4_rdata
+    DCACHE0.io.sram5_rdata := io.sram5_rdata
+    DCACHE0.io.sram6_rdata := io.sram6_rdata
+    DCACHE0.io.sram7_rdata := io.sram7_rdata
     // MEM_DPI0.io.clock := clock
     // MEM_DPI0.io.raddr := Mux(DCACHE_CTRL0.io.uart_dpi_flag, DCACHE_CTRL0.io.addr2mem, 0.U) // DPI-C
     // MEM_DPI0.io.waddr := Mux(DCACHE_CTRL0.io.uart_dpi_flag, DCACHE_CTRL0.io.addr2mem, 0.U) // DPI-C
@@ -409,6 +478,8 @@ class RV64Top extends Module
 
     CLINT0.io.mtimecmp_enw  := MEMCTRL0.io.mtimecmp_flag && (EX2MEM0.io.MEMwmask =/= 0.U)
     CLINT0.io.mtimecmp_in   := EX2MEM0.io.MEMwdata
+    CLINT0.io.mtime_enw     := MEMCTRL0.io.mtime_flag && (EX2MEM0.io.MEMwmask =/= 0.U)
+    CLINT0.io.mtime_in      := EX2MEM0.io.MEMwdata
     //MEM and WB
     MEM2WB0.io.enMEM2WB    := !CTRL0.io.stall_mem2wb
     MEM2WB0.io.flush       := CTRL0.io.flush_mem2wb
@@ -418,7 +489,8 @@ class RV64Top extends Module
     MEM2WB0.io.MEMcsr_enw  := EX2MEM0.io.MEMcsr_enw
     // MEM2WB0.io.MEMwrb2reg  := Mux(MEM2WB0.io.MEMLoad_flag, MEM0.io.rdata, EX2MEM0.io.MEMwrb2reg)
     MEM2WB0.io.MEMwrb2reg  := Mux(MEM2WB0.io.MEMLoad_flag, 
-                              Mux(MEMCTRL0.io.mtimecmp_flag, CLINT0.io.mtimecmp_out, LOADUNIT0.io.rdata), 
+                              Mux(MEMCTRL0.io.mtimecmp_flag, CLINT0.io.mtimecmp_out, 
+                              Mux(MEMCTRL0.io.mtime_flag, CLINT0.io.mtime_out, LOADUNIT0.io.rdata)), 
                               EX2MEM0.io.MEMwrb2reg)
     
     MEM2WB0.io.MEMcsr_rd   := EX2MEM0.io.MEMcsr_rd
@@ -461,8 +533,9 @@ class RV64Top extends Module
     CTRL0.io.mem_enw        := EX2MEM0.io.MEMenw
     CTRL0.io.wb_rd          := MEM2WB0.io.WBrd
     CTRL0.io.wb_enw         := MEM2WB0.io.WBenw
-    CTRL0.io.flushreq_id    := IDU0.io.flush_req || CLINT0.io.int_jump_flag
+    CTRL0.io.flushreq_id    := IDU0.io.flush_req || CLINT0.io.int_jump_flag // CLINT的pc判断在ID处, 所以也要冲刷IF2ID
     CTRL0.io.flushreq_ex    := ALU0.io.flush_req
+    CTRL0.io.async_int_flag    := CLINT0.io.async_int_flag
     CTRL0.io.ifu_stall_req  := IFU0.io.ifu_stall_req
     CTRL0.io.dcache_stall_req  := MEMCTRL0.io.memstall_req
     CTRL0.io.loadflag_ex    := ID2EX0.io.EXLoad_flag
@@ -533,6 +606,56 @@ class RV64Top extends Module
     io.slave_rdata      := 0.U
     io.slave_rlast      := 0.U
     io.slave_rid        := 0.U
+
+    // SRAM
+    io.sram0_addr   := ICACHE0.io.sram0_addr 
+    io.sram0_cen    := ICACHE0.io.sram0_cen  
+    io.sram0_wen    := ICACHE0.io.sram0_wen  
+    io.sram0_wmask  := ICACHE0.io.sram0_wmask
+    io.sram0_wdata  := ICACHE0.io.sram0_wdata
+
+    io.sram1_addr   := ICACHE0.io.sram1_addr 
+    io.sram1_cen    := ICACHE0.io.sram1_cen  
+    io.sram1_wen    := ICACHE0.io.sram1_wen  
+    io.sram1_wmask  := ICACHE0.io.sram1_wmask
+    io.sram1_wdata  := ICACHE0.io.sram1_wdata
+
+    io.sram2_addr   := ICACHE0.io.sram2_addr 
+    io.sram2_cen    := ICACHE0.io.sram2_cen  
+    io.sram2_wen    := ICACHE0.io.sram2_wen  
+    io.sram2_wmask  := ICACHE0.io.sram2_wmask
+    io.sram2_wdata  := ICACHE0.io.sram2_wdata
+
+    io.sram3_addr   := ICACHE0.io.sram3_addr 
+    io.sram3_cen    := ICACHE0.io.sram3_cen  
+    io.sram3_wen    := ICACHE0.io.sram3_wen  
+    io.sram3_wmask  := ICACHE0.io.sram3_wmask
+    io.sram3_wdata  := ICACHE0.io.sram3_wdata
+
+    io.sram4_addr   := DCACHE0.io.sram4_addr 
+    io.sram4_cen    := DCACHE0.io.sram4_cen  
+    io.sram4_wen    := DCACHE0.io.sram4_wen  
+    io.sram4_wmask  := DCACHE0.io.sram4_wmask
+    io.sram4_wdata  := DCACHE0.io.sram4_wdata
+
+    io.sram5_addr   := DCACHE0.io.sram5_addr 
+    io.sram5_cen    := DCACHE0.io.sram5_cen  
+    io.sram5_wen    := DCACHE0.io.sram5_wen  
+    io.sram5_wmask  := DCACHE0.io.sram5_wmask
+    io.sram5_wdata  := DCACHE0.io.sram5_wdata
+
+    io.sram6_addr   := DCACHE0.io.sram6_addr 
+    io.sram6_cen    := DCACHE0.io.sram6_cen  
+    io.sram6_wen    := DCACHE0.io.sram6_wen  
+    io.sram6_wmask  := DCACHE0.io.sram6_wmask
+    io.sram6_wdata  := DCACHE0.io.sram6_wdata
+
+    io.sram7_addr   := DCACHE0.io.sram7_addr 
+    io.sram7_cen    := DCACHE0.io.sram7_cen  
+    io.sram7_wen    := DCACHE0.io.sram7_wen  
+    io.sram7_wmask  := DCACHE0.io.sram7_wmask
+    io.sram7_wdata  := DCACHE0.io.sram7_wdata
+
 // io.axi_aw_valid_o   := AXIRW0.io.axi_aw_valid_o 
 // io.axi_aw_addr_o    := AXIRW0.io.axi_aw_addr_o  
 // io.axi_aw_prot_o    := AXIRW0.io.axi_aw_prot_o  
