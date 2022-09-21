@@ -103,11 +103,11 @@ class CLINT extends Module
         {
             nxt_int_state := INT_IDLE
         }
-    }.elsewhen(int_state === INT_MRET)
+    }.elsewhen(int_state === INT_MRET) // set MIE(3) = MPIE(7), set MPIE(7) = 1;
     {
         io.csr_enw := true.B
         // io.mstatus_out := Cat(io.mstatus_in(63, 4), io.mstatus_in(7), io.mstatus_in(2, 0))
-        io.mstatus_out := Cat(io.mstatus_in(63, 13), "b00".U(2.W), io.mstatus_in(10, 8), "b0".U(1.W), io.mstatus_in(6, 4), io.mstatus_in(7), io.mstatus_in(2, 0))
+        io.mstatus_out := Cat(io.mstatus_in(63, 8), "b1".U(1.W), io.mstatus_in(6, 4), io.mstatus_in(7), io.mstatus_in(2, 0))
         io.mepc_out := io.mepc_in
         io.mcause_out := io.mcause_in
         io.mip_out := io.mip_in

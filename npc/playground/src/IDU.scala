@@ -115,6 +115,7 @@ class IDU extends Module
         ins.divw    -> List("b000".U, "b0010_0010_0_0000_01_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         ins.divu    -> List("b000".U, "b0000_0000_0_0000_01_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         ins.divuw   -> List("b000".U, "b0010_0010_0_0000_01_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.rem     -> List("b000".U, "b0000_0000_0_0000_10_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         ins.remw    -> List("b000".U, "b0010_0010_0_0000_10_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         ins.remuw   -> List("b000".U, "b0010_0010_0_0000_10_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         ins.remu    -> List("b000".U, "b0000_0000_0_0000_10_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
@@ -197,7 +198,8 @@ class IDU extends Module
 
     io.div_flag := ((ctrlList(1)(9, 8) === "b01".U) && (ctrlList(1)(7, 6) === "b10".U)) ||
                    ((ctrlList(1)(9, 8) === "b10".U) && (ctrlList(1)(7, 6) === "b10".U))
-    io.div_signed := (io.inst === ins.remw) || 
+    io.div_signed := (io.inst === ins.rem)  ||
+                     (io.inst === ins.remw) || 
                      (io.inst === ins.divw)
 
     io.mul_signed := 0.U
