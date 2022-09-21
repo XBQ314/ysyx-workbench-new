@@ -9,6 +9,7 @@ class MEMCTRL extends Module
         val pc              = Input(UInt(64.W))
         val addr            = Input(UInt(64.W))
         val dcache_ready    = Input(Bool())
+        val fencei_flag     = Input(Bool())
 
         val dcache_valid    = Output(Bool())
         val memstall_req    = Output(Bool())
@@ -31,7 +32,7 @@ class MEMCTRL extends Module
     nxt_state := cur_state
     when(cur_state === IDLE)
     {
-        when(io.loadstore_flag && last_pc =/= io.pc)
+        when((io.loadstore_flag || io.fencei_flag) && last_pc =/= io.pc)
         {
             // loadstore_pc := io.pc
             io.memstall_req := true.B

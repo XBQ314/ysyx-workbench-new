@@ -38,7 +38,7 @@ class ysyx_040154_MUL extends BlackBox with HasBlackBoxInline
 |    input [63:0] multiplicand, //被乘数,就是第一个数
 |    input [63:0] multipiler, //乘数,就是第二个数
 |
-|    output reg mul_ready, //为高表示乘法器准备好,表示可以输入数据
+|    output reg mul_ready, //为高表示乘法器准备好，表示可以输入数据
 |    output reg out_valid, //为高表示乘法器输出的结果有效
 |
 |    output [63:0] result_hi,
@@ -55,6 +55,11 @@ class ysyx_040154_MUL extends BlackBox with HasBlackBoxInline
 |reg [127:0] result;
 |reg [63:0] multiplicand_reg;
 |reg [63:0] multipiler_reg;
+|reg result_sign_reg;
+|wire multiplicand_sign;
+|wire multipiler_sign;
+|assign multiplicand_sign = multiplicand[63];
+|assign multipiler_sign = multipiler[63];
 |reg [6:0] cnt;
 |reg done_flag;
 |
@@ -153,6 +158,7 @@ class ysyx_040154_MUL extends BlackBox with HasBlackBoxInline
 |        multipiler_reg      <= 'd0;
 |        cnt                 <= 'd0;
 |        done_flag           <= 'd0;
+|        result_sign_reg     <= 'd0;
 |    end
 |    else if(cur_state == IDLE || flush)
 |    begin
@@ -161,14 +167,20 @@ class ysyx_040154_MUL extends BlackBox with HasBlackBoxInline
 |        multipiler_reg      <= 'd0;
 |        cnt                 <= 'd0;
 |        done_flag           <= 'd0;
+|        result_sign_reg     <= 'd0;
 |    end
 |    else if(cur_state == BUSY)
 |    begin
 |        cnt <= cnt+'d1;
 |        if(cnt == 'd0)
 |        begin
-|            multiplicand_reg <= multiplicand;
-|            multipiler_reg <= multipiler;
+|            // multiplicand_reg <= multiplicand;
+|            multiplicand_reg <= mul_signed[1]?(multiplicand_sign?~multiplicand+1'b1:multiplicand):multiplicand;
+|            // multipiler_reg <= multipiler;
+|            multipiler_reg <= mul_signed[0]?(multipiler_sign?~multipiler+1'b1:multipiler):multipiler;
+|            result_sign_reg <= (mul_signed == 2'b00)?1'b0:
+|                               (mul_signed == 2'b10)?multiplicand_sign:
+|                               (mul_signed == 2'b11)?multiplicand_sign^multipiler_sign:1'b0;
 |        end
 |        else
 |        begin
@@ -180,10 +192,10 @@ class ysyx_040154_MUL extends BlackBox with HasBlackBoxInline
 |    end
 |end
 |
-|assign result_hi = result[127:64];
-|assign result_lo = result[63:0];
+|wire [127:0] real_result = result_sign_reg?~result+1'b1:result;
+|assign result_hi = real_result[127:64];
+|assign result_lo = real_result[63:0];
 |
 |endmodule
-|
                 """.stripMargin)
 }

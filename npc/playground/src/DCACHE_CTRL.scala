@@ -11,7 +11,7 @@ class DCACHE_CTRL extends Module
         val cpu_enw = Input(Bool()) // used when write
         val cpu_wmask = Input(UInt(8.W)) // used when write
         val cpu_valid = Input(Bool())
-        // val uncached_flag = Input(Bool())
+        val fencei_flag = Input(Bool())
 
         val data2cpu = Output(UInt(64.W))
         val ready2cpu = Output(Bool()) // result is ready
@@ -54,6 +54,9 @@ class DCACHE_CTRL extends Module
     val ALLOCATE_47 = "b1001".U
     val ALLOCATE_8b = "b1010".U
     val ALLOCATE_cf = "b1011".U
+    val CLEAN = "b1100".U
+    val CLEAN_WBL64 = "b1101".U
+    val CLEAN_WBH64 = "b1110".U
 
 
     val nxt_state = Wire(UInt(4.W))
@@ -62,6 +65,8 @@ class DCACHE_CTRL extends Module
     val clint_flag      = Wire(Bool())
     val uncached_flag   = Wire(Bool())
     val flashXIP_flag   = Wire(Bool())
+    val CLEANidx = RegInit(0.U(8.W))
+    CLEANidx := CLEANidx
 
     // uncached_flag := ((io.cpu_addr === "ha0000048".U(64.W) || io.cpu_addr === "ha00003f8".U(64.W)))
     clint_flag      := ((io.cpu_addr >= "h02000000".U(64.W) && io.cpu_addr <= "h0200Bfff".U(64.W)))
@@ -124,7 +129,8 @@ class DCACHE_CTRL extends Module
         io.dcache_stall_req := false.B
         when(io.cpu_valid && ~clint_flag) // 因为CLINT是core内部实现的外设, 所以不需要发出访存信号(无论是cache还是mem都不需要)
         {
-            nxt_state := COMPARE_TAG
+            nxt_state := Mux(io.fencei_flag, CLEAN, COMPARE_TAG)
+
         }.otherwise
         {
             nxt_state := IDLE
@@ -311,8 +317,56 @@ class DCACHE_CTRL extends Module
         {
             nxt_state := WRITE_BACKH64
         }
+    }.elsewhen(cur_state === CLEAN)
+    {
+        io.index2cache := CLEANidx
+        when((io.cache_valid === 1.U) && (io.cache_dirty === 1.U))
+        {
+            nxt_state := CLEAN_WBL64
+        }.otherwise
+        {
+            CLEANidx := CLEANidx +1.U
+            nxt_state := Mux(CLEANidx === 255.U, IDLE, CLEAN)
+        }
+    }.elsewhen(cur_state === CLEAN_WBL64)
+    {
+        io.index2cache := CLEANidx
+        io.addr2mem := Cat(io.cache_tag, io.index2cache, "b0000".U(4.W))
+        io.data2mem := io.cache_data(63, 0)
+        io.enw2mem := true.B
+        io.valid2mem := true.B
+        when(io.mem_ready)
+        {
+            nxt_state := CLEAN_WBH64
+        }.otherwise
+        {
+            nxt_state := CLEAN_WBL64
+        }
+    }.elsewhen(cur_state === CLEAN_WBH64)
+    {
+        io.index2cache := CLEANidx
+        io.addr2mem := Cat(io.cache_tag, io.index2cache, "b1000".U(4.W))
+        io.data2mem := io.cache_data(127, 64)
+        io.enw2mem := true.B
+        io.valid2mem := true.B
+        when(io.mem_ready)
+        {
+            io.enw2mem := false.B
+            CLEANidx := CLEANidx +1.U
+            when(CLEANidx === 255.U)
+            {
+                nxt_state := IDLE
+            }.otherwise
+            {
+                nxt_state := CLEAN
+            }
+        }.otherwise
+        {
+            nxt_state := CLEAN_WBH64
+        }
     }
     
+
     // .elsewhen(cur_state === UNCACHED) // 如果是触发了UNCACHE的外设访存，直接将CPU信号越过CACHE进行输出
     // {
     //     io.addr2mem := io.cpu_addr

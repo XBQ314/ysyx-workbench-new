@@ -30,8 +30,11 @@ class ID2EX extends Module
         val IDclint_mip = Input(UInt(64.W))
         val IDdiv_flag = Input(Bool())
         val IDdiv_signed = Input(Bool())
+        val IDmul_signed = Input(UInt(2.W))
+        val IDmul_outh = Input(UInt(1.W))
         val IDmul_flag = Input(Bool())
         val IDBtype_flag = Input(Bool())
+        val IDfencei_flag = Input(Bool())
         val IDLoad_flag = Input(Bool())
         val IDpc = Input(UInt(64.W))
         val IDinst = Input(UInt(32.W))
@@ -59,9 +62,12 @@ class ID2EX extends Module
         val EXclint_mip = Output(UInt(64.W))
         val EXdiv_flag = Output(Bool())
         val EXdiv_signed = Output(Bool())
+        val EXmul_signed = Output(UInt(2.W))
+        val EXmul_outh = Output(UInt(1.W))
         val EXmul_flag = Output(Bool())
         val EXBtype_flag = Output(Bool())
         val EXLoad_flag = Output(Bool())
+        val EXfencei_flag = Output(Bool())
         val EXpc = Output(UInt(64.W))
         val EXinst = Output(UInt(32.W))
     })
@@ -87,9 +93,12 @@ class ID2EX extends Module
     val EXclint_mip_reg     = RegEnable(io.IDclint_mip,     0.U, io.enID2EX)
     val EXdiv_flag_reg  = RegEnable(io.IDdiv_flag   , false.B, io.enID2EX)
     val EXdiv_signed_reg= RegEnable(io.IDdiv_signed , false.B, io.enID2EX)
+    val EXmul_signed_reg= RegEnable(io.IDmul_signed , 0.U, io.enID2EX)
+    val EXmul_outh_reg  = RegEnable(io.IDmul_outh   , 0.U, io.enID2EX)
     val EXmul_flag_reg  = RegEnable(io.IDmul_flag   , false.B, io.enID2EX)
     val EXBtype_flag_reg= RegEnable(io.IDBtype_flag , false.B, io.enID2EX)
     val EXLoad_flag_reg = RegEnable(io.IDLoad_flag  , false.B, io.enID2EX)
+    val EXfencei_flag_reg = RegEnable(io.IDfencei_flag, false.B, io.enID2EX)
     val EXpc_reg        = RegEnable(io.IDpc         , 0.U, io.enID2EX)
     val EXinst_reg      = RegEnable(io.IDinst       , 0.U, io.enID2EX)
 
@@ -116,9 +125,12 @@ class ID2EX extends Module
         EXclint_mip_reg     := Mux(io.async_int_flag, io.IDclint_mip    ,0.U)
         EXdiv_flag_reg  := false.B
         EXdiv_signed_reg:= false.B
+        EXmul_signed_reg:= 0.U
+        EXmul_outh_reg  := 0.U
         EXmul_flag_reg  := false.B
         EXBtype_flag_reg:= false.B
         EXLoad_flag_reg := false.B
+        EXfencei_flag_reg := false.B
         EXpc_reg        := "h00000000".U(64.W)
         EXinst_reg      := "h00000013".U(64.W)
     }
@@ -144,9 +156,12 @@ class ID2EX extends Module
     io.EXclint_mip      := EXclint_mip_reg
     io.EXdiv_flag       := EXdiv_flag_reg
     io.EXdiv_signed     := EXdiv_signed_reg
+    io.EXmul_signed     := EXmul_signed_reg
+    io.EXmul_outh       := EXmul_outh_reg
     io.EXmul_flag       := EXmul_flag_reg
     io.EXBtype_flag     := EXBtype_flag_reg 
     io.EXLoad_flag      := EXLoad_flag_reg 
+    io.EXfencei_flag    := EXfencei_flag_reg
     io.EXpc             := EXpc_reg
     io.EXinst           := EXinst_reg
 }

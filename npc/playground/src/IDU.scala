@@ -67,12 +67,15 @@ class IDU extends Module
         val jump_flag = Output(Bool()) // 负责探测jal和jalr造成的跳转
         val flush_req = Output(Bool())
         val mul_flag = Output(Bool())
+        val mul_signed = Output(UInt(2.W))
+        val mul_outh = Output(UInt(2.W))
         val div_flag = Output(Bool())
         val div_signed = Output(Bool())
         val Btype_flag = Output(Bool())
         val Load_flag = Output(Bool())
         val enw = Output(Bool()) // Reg enw
         val csr_enw = Output(Bool())
+        val fencei_flag = Output(Bool())
         // val ecall_flag = Output(Bool())
     })
     val ins = Instructions
@@ -104,14 +107,17 @@ class IDU extends Module
         ins.sub ->  List("b000".U, "b0000_0000_1_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         ins.subw->  List("b000".U, "b0000_0000_1_0000_00_001_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         
-        ins.mul  -> List("b000".U, "b0000_0000_0_0000_00_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.mulw -> List("b000".U, "b0000_0000_0_0000_00_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.divw -> List("b000".U, "b0010_0010_0_0000_01_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.divu -> List("b000".U, "b0000_0000_0_0000_01_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.divuw-> List("b000".U, "b0010_0010_0_0000_01_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.remw -> List("b000".U, "b0010_0010_0_0000_10_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.remuw-> List("b000".U, "b0010_0010_0_0000_10_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.remu -> List("b000".U, "b0000_0000_0_0000_10_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.mul     -> List("b000".U, "b0000_0000_0_0000_00_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.mulh    -> List("b000".U, "b0000_0000_0_0000_00_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.mulhsu  -> List("b000".U, "b0000_0000_0_0000_00_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.mulhu   -> List("b000".U, "b0000_0000_0_0000_00_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.mulw    -> List("b000".U, "b0000_0000_0_0000_00_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.divw    -> List("b000".U, "b0010_0010_0_0000_01_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.divu    -> List("b000".U, "b0000_0000_0_0000_01_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.divuw   -> List("b000".U, "b0010_0010_0_0000_01_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.remw    -> List("b000".U, "b0010_0010_0_0000_10_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.remuw   -> List("b000".U, "b0010_0010_0_0000_10_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.remu    -> List("b000".U, "b0000_0000_0_0000_10_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
 
         ins.sll ->  List("b000".U, "b0000_0000_0_0000_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
         ins.sllw->  List("b000".U, "b0000_0011_0_0000_00_011_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
@@ -193,10 +199,28 @@ class IDU extends Module
                    ((ctrlList(1)(9, 8) === "b10".U) && (ctrlList(1)(7, 6) === "b10".U))
     io.div_signed := (io.inst === ins.remw) || 
                      (io.inst === ins.divw)
+
+    io.mul_signed := 0.U
+    io.mul_outh := 0.U
+    when(io.inst === ins.mulh)
+    {
+        io.mul_signed := "b11".U
+        io.mul_outh := 1.U
+    }.elsewhen(io.inst === ins.mulhsu)
+    {
+        io.mul_signed := "b10".U
+        io.mul_outh := 1.U
+    }.elsewhen(io.inst === ins.mulhu)
+    {
+        io.mul_signed := "b00".U
+        io.mul_outh := 1.U
+    }
     io.mul_flag := (ctrlList(1)(9, 8) === "b00".U) && (ctrlList(1)(7, 6) === "b10".U)
+
     io.Btype_flag := Mux(ctrlList(0) === "b011".U, true.B, false.B)
     io.Load_flag := Mux(ctrlList(5) === "b000".U, false.B, true.B)
     io.csr_enw := (io.inst === ins.csrrs) || (io.inst === ins.csrrw) ||(io.inst === ins.csrrsi) || (io.inst === ins.csrrci)
+    io.fencei_flag := (io.inst === ins.fence_i)
     // io.ecall_flag := (io.inst === ins.ecall)
     // val IDUCampare0 = Module(new Compare())
     // val compare_result = Wire(Bool())

@@ -352,9 +352,12 @@ class RV64Top extends Module
     ID2EX0.io.IDclint_mip       := CLINT0.io.mip_out
     ID2EX0.io.IDdiv_flag        := IDU0.io.div_flag
     ID2EX0.io.IDdiv_signed      := IDU0.io.div_signed
+    ID2EX0.io.IDmul_signed      := IDU0.io.mul_signed
+    ID2EX0.io.IDmul_outh        := IDU0.io.mul_outh
     ID2EX0.io.IDmul_flag        := IDU0.io.mul_flag
     ID2EX0.io.IDBtype_flag      := IDU0.io.Btype_flag
     ID2EX0.io.IDLoad_flag       := IDU0.io.Load_flag
+    ID2EX0.io.IDfencei_flag     := IDU0.io.fencei_flag
     ID2EX0.io.IDpc              := IF2ID0.io.IDpc
     ID2EX0.io.IDinst            := IF2ID0.io.IDinst
 
@@ -372,6 +375,8 @@ class RV64Top extends Module
     ALU0.io.div_flag     := ID2EX0.io.EXdiv_flag
     ALU0.io.div_signed   := ID2EX0.io.EXdiv_signed
     ALU0.io.mul_flag     := ID2EX0.io.EXmul_flag
+    ALU0.io.mul_signed   := ID2EX0.io.EXmul_signed
+    ALU0.io.mul_outh     := ID2EX0.io.EXmul_outh
     ALU0.io.Btype_flag   := ID2EX0.io.EXBtype_flag
 
     RegisterFiles0.io.clock     := clock
@@ -418,6 +423,7 @@ class RV64Top extends Module
     EX2MEM0.io.EXclint_mcause   := ID2EX0.io.EXclint_mcause
     EX2MEM0.io.EXclint_mip      := ID2EX0.io.EXclint_mip
     EX2MEM0.io.EXLoad_flag      := ID2EX0.io.EXLoad_flag
+    EX2MEM0.io.EXfencei_flag    := ID2EX0.io.EXfencei_flag
     EX2MEM0.io.EXpc             := ID2EX0.io.EXpc
     EX2MEM0.io.EXinst           := ID2EX0.io.EXinst
 
@@ -433,6 +439,7 @@ class RV64Top extends Module
     DCACHE_CTRL0.io.cpu_enw     := (EX2MEM0.io.MEMwmask =/= "h00".U(8.W))
     DCACHE_CTRL0.io.cpu_wmask   := EX2MEM0.io.MEMwmask
     DCACHE_CTRL0.io.cpu_valid   := MEMCTRL0.io.dcache_valid
+    DCACHE_CTRL0.io.fencei_flag := EX2MEM0.io.MEMfencei_flag
     // DCACHE_CTRL0.io.uncached_flag := MEMCTRL0.io.uncached_flag
 
     // DCACHE_CTRL0.io.mem_data := MEM_DPI0.io.rdata
@@ -447,6 +454,7 @@ class RV64Top extends Module
 
     MEMCTRL0.io.loadstore_flag  := ((EX2MEM0.io.MEMLOADctrl =/= "b000".U(3.W)) || (EX2MEM0.io.MEMwmask =/= "h00".U(8.W)))
     MEMCTRL0.io.dcache_ready    := DCACHE_CTRL0.io.ready2cpu
+    MEMCTRL0.io.fencei_flag     := EX2MEM0.io.MEMfencei_flag
     MEMCTRL0.io.pc      := EX2MEM0.io.MEMpc
     MEMCTRL0.io.addr    := EX2MEM0.io.MEMraddr  
 
@@ -535,9 +543,9 @@ class RV64Top extends Module
     CTRL0.io.wb_enw         := MEM2WB0.io.WBenw
     CTRL0.io.flushreq_id    := IDU0.io.flush_req || CLINT0.io.int_jump_flag // CLINT的pc判断在ID处, 所以也要冲刷IF2ID
     CTRL0.io.flushreq_ex    := ALU0.io.flush_req
-    CTRL0.io.async_int_flag    := CLINT0.io.async_int_flag
-    CTRL0.io.ifu_stall_req  := IFU0.io.ifu_stall_req
-    CTRL0.io.dcache_stall_req  := MEMCTRL0.io.memstall_req
+    CTRL0.io.async_int_flag     := CLINT0.io.async_int_flag
+    CTRL0.io.ifu_stall_req      := IFU0.io.ifu_stall_req
+    CTRL0.io.dcache_stall_req   := MEMCTRL0.io.memstall_req
     CTRL0.io.loadflag_ex    := ID2EX0.io.EXLoad_flag
     CTRL0.io.mulstall_req   := ALU0.io.mulstall_req
     CTRL0.io.divstall_req   := ALU0.io.divstall_req

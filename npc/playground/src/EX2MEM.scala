@@ -24,7 +24,8 @@ class EX2MEM extends Module
         val EXclint_mepc    = Input(UInt(64.W))
         val EXclint_mcause  = Input(UInt(64.W))
         val EXclint_mip     = Input(UInt(64.W))
-        val EXLoad_flag = Input(Bool())
+        val EXLoad_flag     = Input(Bool())
+        val EXfencei_flag   = Input(Bool())
         val EXpc        = Input(UInt(64.W))
         val EXinst      = Input(UInt(32.W))
 
@@ -46,7 +47,8 @@ class EX2MEM extends Module
         val MEMclint_mepc =    Output(UInt(64.W))
         val MEMclint_mcause =  Output(UInt(64.W))
         val MEMclint_mip    =  Output(UInt(64.W))
-        val MEMLoad_flag= Output(Bool())
+        val MEMLoad_flag    = Output(Bool())
+        val MEMfencei_flag  = Output(Bool())
         val MEMpc       = Output(UInt(64.W))
         val MEMinst     = Output(UInt(32.W))
     })
@@ -63,11 +65,12 @@ class EX2MEM extends Module
     val MEMcsr_rd_reg   = RegEnable(io.EXcsr_rd  , 0.U, io.enEX2MEM)
     val MEMwrb2csr_reg  = RegEnable(io.EXwrb2csr , 0.U, io.enEX2MEM)
     val MEMclint_enw_reg= RegEnable(io.EXclint_enw, false.B, io.enEX2MEM)
-    val MEMclint_mstatus_reg = RegEnable(io.EXclint_mstatus, 0.U, io.enEX2MEM)
-    val MEMclint_mepc_reg    = RegEnable(io.EXclint_mepc, 0.U, io.enEX2MEM)
-    val MEMclint_mcause_reg  = RegEnable(io.EXclint_mcause, 0.U, io.enEX2MEM)
-    val MEMclint_mip_reg     = RegEnable(io.EXclint_mip, 0.U, io.enEX2MEM)
-    val MEMLoad_flag_reg= RegEnable(io.EXLoad_flag, false.B, io.enEX2MEM)
+    val MEMclint_mstatus_reg    = RegEnable(io.EXclint_mstatus, 0.U, io.enEX2MEM)
+    val MEMclint_mepc_reg       = RegEnable(io.EXclint_mepc, 0.U, io.enEX2MEM)
+    val MEMclint_mcause_reg     = RegEnable(io.EXclint_mcause, 0.U, io.enEX2MEM)
+    val MEMclint_mip_reg        = RegEnable(io.EXclint_mip, 0.U, io.enEX2MEM)
+    val MEMLoad_flag_reg        = RegEnable(io.EXLoad_flag, false.B, io.enEX2MEM)
+    val MEMfencei_flag_reg      = RegEnable(io.EXfencei_flag, false.B, io.enEX2MEM)
     val MEMpc_reg       = RegEnable(io.EXpc      , 0.U, io.enEX2MEM)
     val MEMinst_reg     = RegEnable(io.EXinst    , 0.U, io.enEX2MEM)
 
@@ -89,7 +92,8 @@ class EX2MEM extends Module
         MEMclint_mepc_reg       := 0.U
         MEMclint_mcause_reg     := 0.U
         MEMclint_mip_reg        := 0.U
-        MEMLoad_flag_reg:= false.B
+        MEMLoad_flag_reg        := false.B
+        MEMfencei_flag_reg      := false.B
         MEMpc_reg       := "h00000000".U(64.W)
         MEMinst_reg     := "h00000013".U(64.W)
     }
@@ -110,7 +114,8 @@ class EX2MEM extends Module
     io.MEMclint_mepc    := MEMclint_mepc_reg   
     io.MEMclint_mcause  := MEMclint_mcause_reg 
     io.MEMclint_mip     := MEMclint_mip_reg
-    io.MEMLoad_flag:= MEMLoad_flag_reg
+    io.MEMLoad_flag     := MEMLoad_flag_reg
+    io.MEMfencei_flag   := MEMfencei_flag_reg
     io.MEMpc       := MEMpc_reg      
     io.MEMinst     := MEMinst_reg    
 }

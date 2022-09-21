@@ -107,6 +107,8 @@ class Muldiv extends Module
         val ctrl = Input(UInt(2.W))
 
         val mul_flag = Input(Bool())
+        val mul_signed = Input(UInt(2.W))
+        val mul_outh = Input(UInt(1.W))
         val div_flag = Input(Bool())
         val div_signed = Input(Bool())
         val out_valid = Output(Bool())
@@ -137,7 +139,7 @@ class Muldiv extends Module
     MUL0.io.mul_valid := mul_valid
     MUL0.io.flush := false.B
     MUL0.io.mulw := false.B
-    MUL0.io.mul_signed := "b00".U
+    MUL0.io.mul_signed := io.mul_signed
 
     MUL0.io.multiplicand := io.in1
     MUL0.io.multipiler := io.in2
@@ -184,7 +186,7 @@ class Muldiv extends Module
     io.out := 0.U
     switch(io.ctrl)
     {
-    is("b00".U){io.out := MUL0.io.result_lo}
+    is("b00".U){io.out := Mux(io.mul_outh === 1.U, MUL0.io.result_hi, MUL0.io.result_lo)}
     is("b01".U){io.out := DIV0.io.quotient}
     is("b10".U){io.out := DIV0.io.remainder}
     }
@@ -264,6 +266,8 @@ class ALU extends Module
 
         val div_flag = Input(Bool())
         val div_signed=Input(Bool())
+        val mul_signed=Input(UInt(2.W))
+        val mul_outh = Input(UInt(1.W))
         val mul_flag = Input(Bool())
         val Btype_flag = Input(Bool())
         val pc_next = Output(UInt(64.W))
@@ -318,6 +322,8 @@ class ALU extends Module
     calcuMD.io.div_flag := io.div_flag
     calcuMD.io.div_signed:= io.div_signed
     calcuMD.io.mul_flag := io.mul_flag
+    calcuMD.io.mul_signed := io.mul_signed
+    calcuMD.io.mul_outh := io.mul_outh
     io.mulstall_req := io.mul_flag && (!calcuMD.io.out_valid)
     io.divstall_req := io.div_flag && (!calcuMD.io.out_valid)
 
