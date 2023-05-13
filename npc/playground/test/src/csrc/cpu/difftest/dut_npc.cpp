@@ -20,7 +20,7 @@ void init_npc_difftest(long img_size)
 {
     void* handle = dlopen("/home/xubuqing/ysyx-workbench/nemu/build/riscv64-nemu-interpreter-so", RTLD_LAZY);
     assert(handle);
-
+    // printf("q11111111111111111\n");
     /*根据动态链接库操作句柄与符号，返回符号对应的地址*/
     difftest_memcpy = (void (*)(uint64_t, void*, size_t, bool))dlsym(handle, "difftest_memcpy");
     assert(difftest_memcpy);
@@ -30,9 +30,12 @@ void init_npc_difftest(long img_size)
     assert(difftest_exec);
     difftest_init = (void (*)())dlsym(handle, "difftest_init");
     assert(difftest_init);
+    // printf("22222222222222222222\n");
 
     difftest_init();
     difftest_memcpy(0x80000000, mem, img_size, 1);
+    // printf("3333333333333333333\n");
+
     update_npc_regs();
     difftest_regcpy((void*) &npc_regs, 1);
     return;

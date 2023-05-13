@@ -15,7 +15,7 @@
 #include <iostream>
 using namespace std;
 
-#define CONFIG_ITRACE 0
+#define CONFIG_ITRACE 1
 #define CONFIG_DIFFTEST 1
 #define CONFIG_WATCHPOINT 0
 

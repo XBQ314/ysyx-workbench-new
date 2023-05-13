@@ -39,7 +39,6 @@ void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl)
       outl(FB_ADDR + (p<<2), color_buf[j*ctl->w+i]);
     }
   }
-  
   if (ctl->sync)
   {
     outl(SYNC_ADDR, 1);

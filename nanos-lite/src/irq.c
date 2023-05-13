@@ -20,7 +20,7 @@ static Context* do_event(Event e, Context* c)
                         // c->mepc += 4; 
                         break;
     case EVENT_IRQ_TIMER:
-      *((volatile unit64_t *)(0x02004000)) += 7000000;
+      *((volatile uint64_t *)(0x02004000)) += 7000000;
       break;
     default: panic("Unhandled event ID = %d", e.event);
   }

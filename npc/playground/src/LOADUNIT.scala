@@ -5,7 +5,7 @@ class ysyx_040154_LOADUNIT extends BlackBox with HasBlackBoxInline
 {
     val io = IO(new Bundle
     {
-        val raddr = Input(UInt(64.W))
+        val raddr = Input(UInt(3.W))
         val rdata_native = Input(UInt(64.W))
         val LOADctrl = Input(UInt(3.W))
 
@@ -15,7 +15,7 @@ class ysyx_040154_LOADUNIT extends BlackBox with HasBlackBoxInline
                 """
 |module ysyx_040154_LOADUNIT
 |(
-|input [63:0]raddr,
+|input [2:0]raddr,
 |input [63:0]rdata_native,
 |input [2:0]LOADctrl,
 |

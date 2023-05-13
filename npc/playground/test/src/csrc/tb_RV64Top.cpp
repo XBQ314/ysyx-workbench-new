@@ -19,7 +19,6 @@ int main(int argc, char *argv[])
     {
         img_size = load_img(argv[1]); //如果从am启动，则将其编译出的bin写到mem中
     }
-
     sim_init();
     init_device();
     reset(2);

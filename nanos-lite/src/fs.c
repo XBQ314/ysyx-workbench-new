@@ -36,6 +36,7 @@ size_t invalid_write(const void *buf, size_t offset, size_t len)
 }
 
 /* This is the information about all files in disk. */
+/*没有显示制定读写函数指针的文件，默认使用ramdisk进行读写操作*/
 static Finfo file_table[] __attribute__((used)) = 
 {
   [FD_STDIN]  = {"stdin", 0, 0, invalid_read, invalid_write},
@@ -47,12 +48,6 @@ static Finfo file_table[] __attribute__((used)) =
 #include "files.h"
 };
 
-void init_fs() 
-{
-  // TODO: initialize the size of /dev/fb
-  AM_GPU_CONFIG_T fb_config = io_read(AM_GPU_CONFIG);
-  file_table[FD_FB].size = fb_config.width * fb_config.height * sizeof(uint32_t);
-}
 
 int fs_open(const char *pathname, int flags, int mode)
 {
@@ -87,11 +82,13 @@ size_t fs_read(int fd, void *buf, size_t len)
   }
 }
 
+
 size_t fs_write(int fd, const void *buf, size_t len)
 {
+  // printf("This is fs_write, fd=%d, len=%d\n", fd, len);
   if(file_table[fd].write)
   {
-    return file_table[fd].write(buf, file_table[fd].disk_offset, len);
+    return file_table[fd].write(buf, file_table[fd].open_offset, len);
   }
   else
   {
@@ -105,6 +102,7 @@ size_t fs_write(int fd, const void *buf, size_t len)
 
 size_t fs_lseek(int fd, size_t offset, int whence)
 {
+  // printf("set %d = %d\n", fd, offset);
   if(whence == 0)
   {
     file_table[fd].open_offset = offset;
@@ -124,4 +122,9 @@ size_t fs_lseek(int fd, size_t offset, int whence)
 int fs_close(int fd)
 {
   return 0;
+}
+
+void init_fs() 
+{
+  file_table[FD_FB].size = (io_read(AM_GPU_CONFIG).width)*(io_read(AM_GPU_CONFIG).height);
 }

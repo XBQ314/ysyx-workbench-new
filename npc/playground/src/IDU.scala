@@ -59,7 +59,7 @@ class IDU extends Module
         val shamt = Output(UInt(6.W))
 
         val ALUctrl = Output(new ALUctrl)
-        val IFUctrl = Output(new IFUctrl)
+        // val IFUctrl = Output(new IFUctrl)
         val LOADctrl = Output(UInt(3.W))
         val Wmask = Output(UInt(8.W))
         
@@ -68,7 +68,7 @@ class IDU extends Module
         val flush_req = Output(Bool())
         val mul_flag = Output(Bool())
         val mul_signed = Output(UInt(2.W))
-        val mul_outh = Output(UInt(2.W))
+        val mul_outh = Output(UInt(1.W))
         val div_flag = Output(Bool())
         val div_signed = Output(Bool())
         val Btype_flag = Output(Bool())
@@ -94,90 +94,90 @@ class IDU extends Module
     ImmCalcu1.io.inst := io.inst
     
     val ctrlList = ListLookup(io.inst,
-                    List("b000".U, "b0000_0000_0_0000_00_000_000_00".U(20.W), 0.U, 0.U, 0.U, "b000".U, "h00".U, false.B),
+                    List("b000".U, "b0000_0000_0_0000_00_000_000_00".U(20.W), "b000".U, "h00".U, false.B),
                     // (立即数种类，ALU控制信号，IFU控制信号，LOAD控制信号，写掩码，寄存器组写使能)
     Array
     (
-        ins.ebreak->List("b000".U, "b0000_0000_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, false.B),
-        ins.ecall ->List("b000".U, "b0000_0000_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, false.B),
+        ins.ebreak->List("b000".U, "b0000_0000_0_0000_00_000_000_00".U, "b000".U, "h00".U, false.B),
+        ins.ecall ->List("b000".U, "b0000_0000_0_0000_00_000_000_00".U, "b000".U, "h00".U, false.B),
 
         //R-type
-        ins.add ->  List("b000".U, "b0000_0000_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.addw->  List("b000".U, "b0000_0000_0_0000_00_001_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.sub ->  List("b000".U, "b0000_0000_1_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.subw->  List("b000".U, "b0000_0000_1_0000_00_001_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.add ->  List("b000".U, "b0000_0000_0_0000_00_000_000_00".U, "b000".U, "h00".U, true.B),
+        ins.addw->  List("b000".U, "b0000_0000_0_0000_00_001_000_00".U, "b000".U, "h00".U, true.B),
+        ins.sub ->  List("b000".U, "b0000_0000_1_0000_00_000_000_00".U, "b000".U, "h00".U, true.B),
+        ins.subw->  List("b000".U, "b0000_0000_1_0000_00_001_000_00".U, "b000".U, "h00".U, true.B),
         
-        ins.mul     -> List("b000".U, "b0000_0000_0_0000_00_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.mulh    -> List("b000".U, "b0000_0000_0_0000_00_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.mulhsu  -> List("b000".U, "b0000_0000_0_0000_00_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.mulhu   -> List("b000".U, "b0000_0000_0_0000_00_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.mulw    -> List("b000".U, "b0000_0000_0_0000_00_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.divw    -> List("b000".U, "b0010_0010_0_0000_01_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.divu    -> List("b000".U, "b0000_0000_0_0000_01_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.divuw   -> List("b000".U, "b0010_0010_0_0000_01_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.rem     -> List("b000".U, "b0000_0000_0_0000_10_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.remw    -> List("b000".U, "b0010_0010_0_0000_10_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.remuw   -> List("b000".U, "b0010_0010_0_0000_10_101_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.remu    -> List("b000".U, "b0000_0000_0_0000_10_100_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.mul     -> List("b000".U, "b0000_0000_0_0000_00_100_000_00".U, "b000".U, "h00".U, true.B),
+        ins.mulh    -> List("b000".U, "b0000_0000_0_0000_00_100_000_00".U, "b000".U, "h00".U, true.B),
+        ins.mulhsu  -> List("b000".U, "b0000_0000_0_0000_00_100_000_00".U, "b000".U, "h00".U, true.B),
+        ins.mulhu   -> List("b000".U, "b0000_0000_0_0000_00_100_000_00".U, "b000".U, "h00".U, true.B),
+        ins.mulw    -> List("b000".U, "b0000_0000_0_0000_00_101_000_00".U, "b000".U, "h00".U, true.B),
+        ins.divw    -> List("b000".U, "b0010_0010_0_0000_01_101_000_00".U, "b000".U, "h00".U, true.B),
+        ins.divu    -> List("b000".U, "b0000_0000_0_0000_01_100_000_00".U, "b000".U, "h00".U, true.B),
+        ins.divuw   -> List("b000".U, "b0010_0010_0_0000_01_101_000_00".U, "b000".U, "h00".U, true.B),
+        ins.rem     -> List("b000".U, "b0000_0000_0_0000_10_100_000_00".U, "b000".U, "h00".U, true.B),
+        ins.remw    -> List("b000".U, "b0010_0010_0_0000_10_101_000_00".U, "b000".U, "h00".U, true.B),
+        ins.remuw   -> List("b000".U, "b0010_0010_0_0000_10_101_000_00".U, "b000".U, "h00".U, true.B),
+        ins.remu    -> List("b000".U, "b0000_0000_0_0000_10_100_000_00".U, "b000".U, "h00".U, true.B),
 
-        ins.sll ->  List("b000".U, "b0000_0000_0_0000_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.sllw->  List("b000".U, "b0000_0011_0_0000_00_011_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.srlw->  List("b000".U, "b0010_0011_0_0010_00_011_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.sraw->  List("b000".U, "b0010_0011_0_0010_00_011_100_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.and ->  List("b000".U, "b0000_0000_0_0100_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.or  ->  List("b000".U, "b0000_0000_0_0110_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.xor ->  List("b000".U, "b0000_0000_0_1000_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.sll ->  List("b000".U, "b0000_0000_0_0000_00_010_000_00".U, "b000".U, "h00".U, true.B),
+        ins.sllw->  List("b000".U, "b0000_0011_0_0000_00_011_000_00".U, "b000".U, "h00".U, true.B),
+        ins.srlw->  List("b000".U, "b0010_0011_0_0010_00_011_000_00".U, "b000".U, "h00".U, true.B),
+        ins.sraw->  List("b000".U, "b0010_0011_0_0010_00_011_100_00".U, "b000".U, "h00".U, true.B),
+        ins.and ->  List("b000".U, "b0000_0000_0_0100_00_010_000_00".U, "b000".U, "h00".U, true.B),
+        ins.or  ->  List("b000".U, "b0000_0000_0_0110_00_010_000_00".U, "b000".U, "h00".U, true.B),
+        ins.xor ->  List("b000".U, "b0000_0000_0_1000_00_010_000_00".U, "b000".U, "h00".U, true.B),
 
-        ins.slt ->  List("b000".U, "b0000_0000_1_0000_00_000_100_01".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.sltu -> List("b000".U, "b0000_0000_1_0000_00_000_000_01".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.slt ->  List("b000".U, "b0000_0000_1_0000_00_000_100_01".U, "b000".U, "h00".U, true.B),
+        ins.sltu -> List("b000".U, "b0000_0000_1_0000_00_000_000_01".U, "b000".U, "h00".U, true.B),
 
-        ins.mret->  List("b000".U, "b0000_0000_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, false.B),
+        ins.mret->  List("b000".U, "b0000_0000_0_0000_00_000_000_00".U, "b000".U, "h00".U, false.B),
         //I-type
-        ins.lb ->   List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b001".U, "h00".U, true.B),
-        ins.lbu ->  List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b010".U, "h00".U, true.B),
-        ins.lh ->   List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b011".U, "h00".U, true.B),
-        ins.lhu ->  List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b100".U, "h00".U, true.B),
-        ins.lw ->   List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b101".U, "h00".U, true.B),
-        ins.lwu ->  List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b110".U, "h00".U, true.B),
-        ins.ld ->   List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b111".U, "h00".U, true.B),
+        ins.lb ->   List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, "b001".U, "h00".U, true.B),
+        ins.lbu ->  List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, "b010".U, "h00".U, true.B),
+        ins.lh ->   List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, "b011".U, "h00".U, true.B),
+        ins.lhu ->  List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, "b100".U, "h00".U, true.B),
+        ins.lw ->   List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, "b101".U, "h00".U, true.B),
+        ins.lwu ->  List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, "b110".U, "h00".U, true.B),
+        ins.ld ->   List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, "b111".U, "h00".U, true.B),
         
-        ins.addi -> List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.addiw-> List("b000".U, "b0000_0100_0_0000_00_001_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.addi -> List("b000".U, "b0000_0100_0_0000_00_000_000_00".U, "b000".U, "h00".U, true.B),
+        ins.addiw-> List("b000".U, "b0000_0100_0_0000_00_001_000_00".U, "b000".U, "h00".U, true.B),
 
-        ins.slli -> List("b000".U, "b0000_1100_0_0000_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.slliw-> List("b000".U, "b0000_1100_0_0000_00_011_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.srai -> List("b000".U, "b0000_1100_0_0011_00_010_100_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.sraiw-> List("b000".U, "b0010_1100_0_0010_00_011_100_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.srli -> List("b000".U, "b0000_1100_0_0010_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.srliw-> List("b000".U, "b0010_1100_0_0010_00_011_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.andi -> List("b000".U, "b0000_0100_0_0100_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.ori ->  List("b000".U, "b0000_0100_0_0110_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.xori -> List("b000".U, "b0000_0100_0_1000_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.slli -> List("b000".U, "b0000_1100_0_0000_00_010_000_00".U, "b000".U, "h00".U, true.B),
+        ins.slliw-> List("b000".U, "b0000_1100_0_0000_00_011_000_00".U, "b000".U, "h00".U, true.B),
+        ins.srai -> List("b000".U, "b0000_1100_0_0011_00_010_100_00".U, "b000".U, "h00".U, true.B),
+        ins.sraiw-> List("b000".U, "b0010_1100_0_0010_00_011_100_00".U, "b000".U, "h00".U, true.B),
+        ins.srli -> List("b000".U, "b0000_1100_0_0010_00_010_000_00".U, "b000".U, "h00".U, true.B),
+        ins.srliw-> List("b000".U, "b0010_1100_0_0010_00_011_000_00".U, "b000".U, "h00".U, true.B),
+        ins.andi -> List("b000".U, "b0000_0100_0_0100_00_010_000_00".U, "b000".U, "h00".U, true.B),
+        ins.ori ->  List("b000".U, "b0000_0100_0_0110_00_010_000_00".U, "b000".U, "h00".U, true.B),
+        ins.xori -> List("b000".U, "b0000_0100_0_1000_00_010_000_00".U, "b000".U, "h00".U, true.B),
 
-        ins.sltiu-> List("b000".U, "b0000_0100_1_0000_00_000_000_01".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.jalr -> List("b000".U, "b0100_1000_0_0000_00_000_000_00".U, 1.U, 1.U, 1.U, "b000".U, "h00".U, true.B),
+        ins.sltiu-> List("b000".U, "b0000_0100_1_0000_00_000_000_01".U, "b000".U, "h00".U, true.B),
+        ins.jalr -> List("b000".U, "b0100_1000_0_0000_00_000_000_00".U, "b000".U, "h00".U, true.B),
         
-        ins.csrrs-> List("b000".U, "b0000_0000_0_0110_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.csrrw-> List("b000".U, "b0000_0000_0_0000_00_010_000_11".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.csrrsi->List("b000".U, "b1000_0000_0_0110_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.csrrci->List("b000".U, "b1100_0000_0_0100_00_010_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.csrrs-> List("b000".U, "b0000_0000_0_0110_00_010_000_00".U, "b000".U, "h00".U, true.B),
+        ins.csrrw-> List("b000".U, "b0000_0000_0_0000_00_010_000_11".U, "b000".U, "h00".U, true.B),
+        ins.csrrsi->List("b000".U, "b1000_0000_0_0110_00_010_000_00".U, "b000".U, "h00".U, true.B),
+        ins.csrrci->List("b000".U, "b1100_0000_0_0100_00_010_000_00".U, "b000".U, "h00".U, true.B),
         //S-type
-        ins.sb ->   List("b010".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h01".U, false.B),
-        ins.sh ->   List("b010".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h03".U, false.B),
-        ins.sw ->   List("b010".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h0f".U, false.B),
-        ins.sd ->   List("b010".U, "b0000_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "hff".U, false.B),
+        ins.sb ->   List("b010".U, "b0000_0100_0_0000_00_000_000_00".U, "b000".U, "h01".U, false.B),
+        ins.sh ->   List("b010".U, "b0000_0100_0_0000_00_000_000_00".U, "b000".U, "h03".U, false.B),
+        ins.sw ->   List("b010".U, "b0000_0100_0_0000_00_000_000_00".U, "b000".U, "h0f".U, false.B),
+        ins.sd ->   List("b010".U, "b0000_0100_0_0000_00_000_000_00".U, "b000".U, "hff".U, false.B),
         //B-type
-        ins.beq ->  List("b011".U, "b0000_0000_1_0000_00_000_010_01".U, 2.U, 0.U, 0.U, "b000".U, "h00".U, false.B),
-        ins.bne ->  List("b011".U, "b0000_0000_1_0000_00_000_011_01".U, 2.U, 0.U, 0.U, "b000".U, "h00".U, false.B),
-        ins.blt ->  List("b011".U, "b0000_0000_1_0000_00_000_100_01".U, 2.U, 0.U, 0.U, "b000".U, "h00".U, false.B),
-        ins.bge ->  List("b011".U, "b0000_0000_1_0000_00_000_101_01".U, 2.U, 0.U, 0.U, "b000".U, "h00".U, false.B),
-        ins.bltu->  List("b011".U, "b0000_0000_1_0000_00_000_000_01".U, 2.U, 0.U, 0.U, "b000".U, "h00".U, false.B),
-        ins.bgeu->  List("b011".U, "b0000_0000_1_0000_00_000_001_01".U, 2.U, 0.U, 0.U, "b000".U, "h00".U, false.B),
+        ins.beq ->  List("b011".U, "b0000_0000_1_0000_00_000_010_01".U, "b000".U, "h00".U, false.B),
+        ins.bne ->  List("b011".U, "b0000_0000_1_0000_00_000_011_01".U, "b000".U, "h00".U, false.B),
+        ins.blt ->  List("b011".U, "b0000_0000_1_0000_00_000_100_01".U, "b000".U, "h00".U, false.B),
+        ins.bge ->  List("b011".U, "b0000_0000_1_0000_00_000_101_01".U, "b000".U, "h00".U, false.B),
+        ins.bltu->  List("b011".U, "b0000_0000_1_0000_00_000_000_01".U, "b000".U, "h00".U, false.B),
+        ins.bgeu->  List("b011".U, "b0000_0000_1_0000_00_000_001_01".U, "b000".U, "h00".U, false.B),
         //U-type
-        ins.auipc-> List("b001".U, "b0100_0100_0_0000_00_000_000_00".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
-        ins.lui ->  List("b001".U, "b0000_0100_0_0000_00_000_000_10".U, 0.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.auipc-> List("b001".U, "b0100_0100_0_0000_00_000_000_00".U, "b000".U, "h00".U, true.B),
+        ins.lui ->  List("b001".U, "b0000_0100_0_0000_00_000_000_10".U, "b000".U, "h00".U, true.B),
         //J-type
-        ins.jal ->  List("b100".U, "b0100_1000_0_0000_00_000_000_00".U, 1.U, 0.U, 0.U, "b000".U, "h00".U, true.B),
+        ins.jal ->  List("b100".U, "b0100_1000_0_0000_00_000_000_00".U, "b000".U, "h00".U, true.B),
     ))
     ImmCalcu1.io.imm_sel:=ctrlList(0)
     io.ALUctrl := ctrlList(1).asTypeOf(io.ALUctrl)
@@ -188,13 +188,13 @@ class IDU extends Module
     // io.ALUctrl.signed_flag :=   ctrlList(1)(4)  
     // io.ALUctrl.compare_ctrl :=  ctrlList(1)(3, 2)
     // io.ALUctrl.ALUout_ctrl :=   ctrlList(1)(1, 0)
-    io.IFUctrl.ifuMux1:=ctrlList(2)
-    io.IFUctrl.ifuMux2:=ctrlList(3)
-    io.IFUctrl.ifuOutMux:=ctrlList(4)
+    // io.IFUctrl.ifuMux1:=ctrlList(2)
+    // io.IFUctrl.ifuMux2:=ctrlList(3)
+    // io.IFUctrl.ifuOutMux:=ctrlList(4)
 
-    io.LOADctrl := ctrlList(5)
-    io.Wmask := ctrlList(6)
-    io.enw := (ctrlList(7) === true.B) && (io.inst(11, 7) =/= 0.U)
+    io.LOADctrl := ctrlList(2)
+    io.Wmask := ctrlList(3)
+    io.enw := (ctrlList(4) === true.B) && (io.inst(11, 7) =/= 0.U)
 
     io.div_flag := ((ctrlList(1)(9, 8) === "b01".U) && (ctrlList(1)(7, 6) === "b10".U)) ||
                    ((ctrlList(1)(9, 8) === "b10".U) && (ctrlList(1)(7, 6) === "b10".U))
@@ -220,7 +220,7 @@ class IDU extends Module
     io.mul_flag := (ctrlList(1)(9, 8) === "b00".U) && (ctrlList(1)(7, 6) === "b10".U)
 
     io.Btype_flag := Mux(ctrlList(0) === "b011".U, true.B, false.B)
-    io.Load_flag := Mux(ctrlList(5) === "b000".U, false.B, true.B)
+    io.Load_flag := Mux(ctrlList(2) === "b000".U, false.B, true.B)
     io.csr_enw := (io.inst === ins.csrrs) || (io.inst === ins.csrrw) ||(io.inst === ins.csrrsi) || (io.inst === ins.csrrci)
     io.fencei_flag := (io.inst === ins.fence_i)
     // io.ecall_flag := (io.inst === ins.ecall)

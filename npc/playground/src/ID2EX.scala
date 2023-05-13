@@ -13,7 +13,7 @@ class ID2EX extends Module
         val IDzimm = Input(UInt(5.W))
         val IDshamt = Input(UInt(6.W))
         val IDALUctrl = Input(new ALUctrl())
-        val IDIFUctrl = Input(new IFUctrl())
+        // val IDIFUctrl = Input(new IFUctrl())
         val IDLOADctrl = Input(UInt(3.W))
         val IDWmask = Input(UInt(8.W))
         val IDenw = Input(UInt(1.W))
@@ -45,7 +45,7 @@ class ID2EX extends Module
         val EXzimm = Output(UInt(5.W))
         val EXshamt = Output(UInt(6.W))
         val EXALUctrl = Output(new ALUctrl())
-        val EXIFUctrl = Output(new IFUctrl())
+        // val EXIFUctrl = Output(new IFUctrl())
         val EXLOADctrl = Output(UInt(3.W))
         val EXWmask = Output(UInt(8.W))
         val EXenw = Output(UInt(1.W))
@@ -76,7 +76,7 @@ class ID2EX extends Module
     val EXzimm_reg      = RegEnable(io.IDzimm       , 0.U, io.enID2EX)
     val EXshamt_reg     = RegEnable(io.IDshamt      , 0.U, io.enID2EX)
     val EXALUctrl_reg   = RegEnable(io.IDALUctrl    , 0.U.asTypeOf(chiselTypeOf(io.IDALUctrl)), io.enID2EX)
-    val EXIFUctrl_reg   = RegEnable(io.IDIFUctrl    , 0.U.asTypeOf(chiselTypeOf(io.IDIFUctrl)), io.enID2EX)
+    // val EXIFUctrl_reg   = RegEnable(io.IDIFUctrl    , 0.U.asTypeOf(chiselTypeOf(io.IDIFUctrl)), io.enID2EX)
     val EXLOADctrl_reg  = RegEnable(io.IDLOADctrl   , 0.U, io.enID2EX)
     val EXWmask_reg     = RegEnable(io.IDWmask      , 0.U, io.enID2EX)
     val EXenw_reg       = RegEnable(io.IDenw        , 0.U, io.enID2EX)
@@ -108,7 +108,7 @@ class ID2EX extends Module
         EXzimm_reg      := 0.U
         EXshamt_reg     := 0.U
         EXALUctrl_reg   := 0.U.asTypeOf(chiselTypeOf(io.IDALUctrl))
-        EXIFUctrl_reg   := 0.U.asTypeOf(chiselTypeOf(io.IDIFUctrl))
+        // EXIFUctrl_reg   := 0.U.asTypeOf(chiselTypeOf(io.IDIFUctrl))
         EXLOADctrl_reg  := 0.U
         EXWmask_reg     := 0.U
         EXenw_reg       := 0.U
@@ -139,7 +139,7 @@ class ID2EX extends Module
     io.EXzimm           := EXzimm_reg  
     io.EXshamt          := EXshamt_reg   
     io.EXALUctrl        := EXALUctrl_reg 
-    io.EXIFUctrl        := EXIFUctrl_reg 
+    // io.EXIFUctrl        := EXIFUctrl_reg 
     io.EXLOADctrl       := EXLOADctrl_reg
     io.EXWmask          := EXWmask_reg   
     io.EXenw            := EXenw_reg

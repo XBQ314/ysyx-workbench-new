@@ -63,8 +63,12 @@ static void prev() {
   }
 }
 
-static void clear_display(void) {
-  SDL_FillRect(screen, NULL, 0xffffff);
+static void clear_display(void) 
+{
+  // printf("This is clear_display.\n");
+  // printf("screen:%d %d\n", screen->w, screen->h);
+  SDL_FillRect(screen, NULL, 0xaaaaaa);
+  // printf("This is end of clear_display.\n");
 }
 
 int main(int argc, char *argv[], char *envp[]) {

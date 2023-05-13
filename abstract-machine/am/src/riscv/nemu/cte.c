@@ -40,7 +40,7 @@ Context* __am_irq_handle(Context *c)
       default: ev.event = EVENT_ERROR; break;
     }
 
-    c = user_handler(ev, c); // 调用lite-nano中设定的do_event函数，实现时间处理并更改上下文
+    c = user_handler(ev, c); // 调用lite-nano中设定的do_event函数，实现event处理并更改上下文
     assert(c != NULL);
   }
 
@@ -76,13 +76,14 @@ void iset(bool enable)
   if(enable)
   {
     asm volatile("csrsi mstatus, 8");
-    asm volatile("csrsi mie, 0x80");
+    asm volatile("li a0, 128");
+    asm volatile("csrs mie, a0");
     //set_csr(mie, MIP_MTIP);
   }
   else
   {
     asm volatile("csrci mstatus, 8");
-    asm volatile("csrci mstatus, 0x80");
+    // asm volatile("csrci mie, 8");
     //clear_csr(mie, MIP_MTIP);
   }
 }

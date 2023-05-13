@@ -10,7 +10,6 @@ class ysyx_040154_MUL extends BlackBox with HasBlackBoxInline
 
         val mul_valid = Input(Bool())
         val flush = Input(Bool())
-        val mulw = Input(Bool())
         val mul_signed = Input(UInt(2.W))
 
         val multiplicand = Input(UInt(64.W))
@@ -32,7 +31,6 @@ class ysyx_040154_MUL extends BlackBox with HasBlackBoxInline
 |
 |    input mul_valid, //为高表示输入的数据有效,如果没有新的乘法输入,在乘法被接受的下一个周期要置低
 |    input flush, //为高表示取消乘法
-|    input mulw, //为高表示是 32 位乘法
 |    input [1:0] mul_signed, //2'b11(signed x signed); 2'b10(signed x unsigned); 2'b00(unsigned x unsigned);
 |
 |    input [63:0] multiplicand, //被乘数,就是第一个数

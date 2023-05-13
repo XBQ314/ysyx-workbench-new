@@ -138,7 +138,7 @@ class Muldiv extends Module
 
     MUL0.io.mul_valid := mul_valid
     MUL0.io.flush := false.B
-    MUL0.io.mulw := false.B
+    // MUL0.io.mulw := false.B
     MUL0.io.mul_signed := io.mul_signed
 
     MUL0.io.multiplicand := io.in1
@@ -149,7 +149,7 @@ class Muldiv extends Module
 
     DIV0.io.div_valid := div_valid
     DIV0.io.flush := false.B
-    DIV0.io.divw := false.B
+    // DIV0.io.divw := false.B
     DIV0.io.div_signed := io.div_signed
 
     DIV0.io.dividend := io.in1

@@ -65,11 +65,11 @@ class ysyx_040154_RegisterFiles extends BlackBox with HasBlackBoxInline
 |);
 |reg [63:0] regFiles[31:0];
 |
-|// import "DPI-C" function void set_gpr_ptr(input logic [63:0] a []);
-|// initial 
-|// begin
-|//     set_gpr_ptr(regFiles); 
-|// end
+|import "DPI-C" function void set_gpr_ptr(input logic [63:0] a []);
+|initial 
+|begin
+|    set_gpr_ptr(regFiles); 
+|end
 |
 |always@(posedge clock)
 |begin

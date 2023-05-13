@@ -1,12 +1,12 @@
 import chisel3._
 import chisel3.util._
 
-class IFUctrl extends Bundle
-{
-    val ifuMux1 = UInt(2.W) // from IDU
-    val ifuMux2 = UInt(1.W) // from IDU
-    val ifuOutMux = UInt(1.W) // from IDU
-}
+// class IFUctrl extends Bundle
+// {
+//     val ifuMux1 = UInt(2.W) // from IDU
+//     val ifuMux2 = UInt(1.W) // from IDU
+//     val ifuOutMux = UInt(1.W) // from IDU
+// }
 class IFU extends Module
 {
     val io = IO(new Bundle
@@ -27,7 +27,7 @@ class IFU extends Module
     val DONE = "b011".U
     val nxt_state = Wire(UInt(3.W))
     val cur_state = RegNext(nxt_state, "b000".U)
-    val regPC = RegInit(("h30000000".U(64.W)))
+    val regPC = RegInit(("h80000000".U(64.W)))
     val pc_update = Wire(Bool())
 
     nxt_state := cur_state
