@@ -83,7 +83,7 @@ class AXI_ARIBITER extends Module
     {
         io.ICache_mem_data      := io.data_read_o
         io.ICache_mem_ready     := io.rw_ready_o
-        io.rw_valid_i           := true.B
+        io.rw_valid_i           := !io.rw_ready_o
         io.enw_i                := io.ICache_enw2mem
         io.rw_w_data_i          := io.ICache_data2mem
         io.rw_addr_i            := io.ICache_addr2mem
@@ -96,7 +96,7 @@ class AXI_ARIBITER extends Module
     {
         io.DCache_mem_data      := io.data_read_o
         io.DCache_mem_ready     := io.rw_ready_o
-        io.rw_valid_i           := true.B
+        io.rw_valid_i           := !io.rw_ready_o
         io.enw_i                := io.DCache_enw2mem
         io.rw_w_data_i          := io.DCache_data2mem
         io.rw_addr_i            := io.DCache_addr2mem

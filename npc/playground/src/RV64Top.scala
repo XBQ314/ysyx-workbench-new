@@ -14,133 +14,18 @@ class RV64Top extends Module
         val mem_addr = Output(UInt(64.W))
         val mem_wdata = Output(UInt(64.W))
         val enMEM2WB = Output(Bool())
-
-        // // Advanced eXtensible Interface
-        // val axi_aw_ready_i = Input(UInt(1.W))
-        // val axi_aw_valid_o = Output(UInt(1.W))
-        // val axi_aw_addr_o = Output(UInt(32.W))
-        // val axi_aw_prot_o = Output(UInt(3.W))
-        // val axi_aw_id_o = Output(UInt(4.W))
-        // val axi_aw_user_o = Output(UInt(1.W))
-        // val axi_aw_len_o = Output(UInt(8.W))
-        // val axi_aw_size_o = Output(UInt(3.W))
-        // val axi_aw_burst_o = Output(UInt(2.W))
-        // val axi_aw_lock_o = Output(UInt(1.W))
-        // val axi_aw_cache_o = Output(UInt(4.W))
-        // val axi_aw_qos_o = Output(UInt(4.W))
-        // val axi_aw_region_o = Output(UInt(4.W))
-
-
-        // val axi_w_ready_i = Input(UInt(1.W))
-        // val axi_w_valid_o = Output(UInt(1.W))
-        // val axi_w_data_o = Output(UInt(64.W))
-        // val axi_w_strb_o = Output(UInt(8.W))
-        // val axi_w_last_o = Output(UInt(1.W))
-        // val axi_w_user_o = Output(UInt(1.W))
-
-
-        // val axi_b_ready_o = Output(UInt(1.W)) 
-        // val axi_b_valid_i = Input(UInt(1.W))
-        // val axi_b_resp_i = Input(UInt(2.W))
-        // val axi_b_id_i = Input(UInt(4.W))
-        // val axi_b_user_i = Input(UInt(1.W))
-
-
-        // val axi_ar_ready_i = Input(UInt(1.W))
-        // val axi_ar_valid_o = Output(UInt(1.W))
-        // val axi_ar_addr_o = Output(UInt(32.W))
-        // val axi_ar_prot_o = Output(UInt(3.W))
-        // val axi_ar_id_o = Output(UInt(4.W))
-        // val axi_ar_user_o = Output(UInt(1.W))
-        // val axi_ar_len_o = Output(UInt(8.W))
-        // val axi_ar_size_o = Output(UInt(3.W))
-        // val axi_ar_burst_o = Output(UInt(2.W))
-        // val axi_ar_lock_o = Output(UInt(1.W))
-        // val axi_ar_cache_o = Output(UInt(4.W))
-        // val axi_ar_qos_o = Output(UInt(4.W))
-        // val axi_ar_region_o = Output(UInt(4.W))
-
-
-        // val axi_r_ready_o = Output(UInt(1.W))
-        // val axi_r_valid_i = Input(UInt(1.W))
-        // val axi_r_resp_i = Input(UInt(2.W))
-        // val axi_r_data_i = Input(UInt(64.W))
-        // val axi_r_last_i = Input(UInt(1.W))
-        // val axi_r_id_i = Input(UInt(4.W))
-        // val axi_r_user_i = Input(UInt(1.W))
         
         // SOC io_interrupt
         val interrupt = Input(UInt(1.W))
 
-        // SOC Interface Master
-        val master_awready =    Input(UInt(1.W))
-        val master_awvalid =    Output(UInt(1.W))
-        val master_awaddr =     Output(UInt(32.W)) 
-        val master_awid =       Output(UInt(4.W))
-        val master_awlen =      Output(UInt(8.W))
-        val master_awsize =     Output(UInt(3.W))
-        val master_awburst =    Output(UInt(2.W))
-
-        val master_wready =     Input(UInt(1.W))
-        val master_wvalid =     Output(UInt(1.W))
-        val master_wdata =      Output(UInt(64.W))
-        val master_wstrb =      Output(UInt(8.W))
-        val master_wlast =      Output(UInt(1.W))
-
-        val master_bready =     Output(UInt(1.W)) 
-        val master_bvalid =     Input(UInt(1.W))
-        val master_bresp =      Input(UInt(2.W))
-        val master_bid =        Input(UInt(4.W))
-
-        val master_arready =    Input(UInt(1.W))
-        val master_arvalid =    Output(UInt(1.W))
-        val master_araddr =     Output(UInt(32.W))
-        val master_arid =       Output(UInt(4.W))   
-        val master_arlen =      Output(UInt(8.W))
-        val master_arsize =     Output(UInt(3.W))
-        val master_arburst =    Output(UInt(2.W))
-
-        val master_rready =     Output(UInt(1.W)) 
-        val master_rvalid =     Input(UInt(1.W))
-        val master_rresp =      Input(UInt(2.W))
-        val master_rdata =      Input(UInt(64.W))
-        val master_rlast =      Input(UInt(1.W))
-        val master_rid =        Input(UInt(4.W))
-
-        // SOC Interface Slave   
-        val slave_awready    = Output(UInt(1.W))
-        val slave_awvalid    = Input(UInt(1.W))
-        val slave_awaddr     = Input(UInt(32.W)) 
-        val slave_awid       = Input(UInt(4.W))   
-        val slave_awlen      = Input(UInt(8.W))  
-        val slave_awsize     = Input(UInt(3.W)) 
-        val slave_awburst    = Input(UInt(2.W))
-
-        val slave_wready     = Output(UInt(1.W))
-        val slave_wvalid     = Input(UInt(1.W))
-        val slave_wdata      = Input(UInt(64.W))  
-        val slave_wstrb      = Input(UInt(8.W)) 
-        val slave_wlast      = Input(UInt(1.W))  
-
-        val slave_bready     = Input(UInt(1.W)) 
-        val slave_bvalid     = Output(UInt(1.W))
-        val slave_bresp      = Output(UInt(2.W)) 
-        val slave_bid        = Output(UInt(4.W))  
-
-        val slave_arready    = Output(UInt(1.W))
-        val slave_arvalid    = Input(UInt(1.W))
-        val slave_araddr     = Input(UInt(32.W))
-        val slave_arid       = Input(UInt(4.W))     
-        val slave_arlen      = Input(UInt(8.W))  
-        val slave_arsize     = Input(UInt(3.W)) 
-        val slave_arburst    = Input(UInt(2.W))
-
-        val slave_rready     = Input(UInt(1.W))  
-        val slave_rvalid     = Output(UInt(1.W)) 
-        val slave_rresp      = Output(UInt(2.W))  
-        val slave_rdata      = Output(UInt(64.W))  
-        val slave_rlast      = Output(UInt(1.W))  
-        val slave_rid        = Output(UInt(4.W))
+        // // TopInterface
+        // val mode = Output(UInt(1.W)) // mode=0 -> read; mode -> 1 write;
+        // val valid = Output(Bool())
+        // val addr = Output(UInt(64.W))
+        // val w_data = Output(UInt(8.W))
+        // val ready = Input(Bool())
+        // val r_data_valid = Input(Bool())
+        // val r_data = Input(UInt(8.W))
 
         // // SRAM
         // val sram0_addr      = Output(UInt(6.W))
@@ -209,7 +94,7 @@ class RV64Top extends Module
     val EX2MEM0 = Module(new EX2MEM())
     // val MEM0 = Module(new MEM())
     val MEMCTRL0 = Module(new MEMCTRL())
-    val MEM_DPI0 = Module(new ysyx_040154_MEM_DPI()) // verilog
+    // val MEM_DPI0 = Module(new ysyx_040154_MEM_DPI()) // verilog
     val LOADUNIT0 = Module(new ysyx_040154_LOADUNIT()) // verilog
     val MEM2WB0 = Module(new MEM2WB())
     val CTRL0 = Module(new CTRL())
@@ -219,8 +104,10 @@ class RV64Top extends Module
     val ICACHE0 = Module(new ICACHE())
     val DCACHE_CTRL0 = Module(new DCACHE_CTRL())
     val DCACHE0 = Module(new DCACHE())
-    val AXIRW0 = Module(new ysyx_040154_axi_rw()) // verilog
-    val AXI_ARIBITER0 = Module(new AXI_ARIBITER())
+    val TopInterface0 = Module(new TopInterface())
+    // val AXIRW0 = Module(new ysyx_040154_axi_rw()) // verilog
+    val AXI_ARIBITER0 = Module(new AXI_ARIBITER()) // verilog
+    val main_memory0 = Module(new main_memory())
 
     //IF and ID
     // IFU0.io.regfile_out1 := RegisterFiles0.io.regfile_out1
@@ -240,32 +127,48 @@ class RV64Top extends Module
     IFU0.io.ready     := ICACHE_CTRL0.io.ready2cpu
     // IFU_DPI0.io.pc    := ICACHE_CTRL0.io.addr2mem // DPI
 
-    AXIRW0.io.clock         := clock // AXI
-    AXIRW0.io.reset         := reset // AXI
-    // AXIRW0.io.rw_addr_i     := ICACHE_CTRL0.io.addr2mem(31, 0) // AXI
-    // AXIRW0.io.rw_valid_i    := ICACHE_CTRL0.io.valid2mem // AXI
-    // AXIRW0.io.enw_i         := ICACHE_CTRL0.io.enw2mem // AXI
-    // AXIRW0.io.rw_w_data_i   := ICACHE_CTRL0.io.data2mem // AXI
-    // AXIRW0.io.rw_size_i     := ICACHE_CTRL0.io.wmask2mem // AXI
-    AXIRW0.io.rw_addr_i     := AXI_ARIBITER0.io.rw_addr_i // AXI
-    AXIRW0.io.rw_valid_i    := AXI_ARIBITER0.io.rw_valid_i // AXI
-    AXIRW0.io.enw_i         := AXI_ARIBITER0.io.enw_i // AXI
-    AXIRW0.io.rw_w_data_i   := AXI_ARIBITER0.io.rw_w_data_i // AXI
-    AXIRW0.io.rw_size_i     := AXI_ARIBITER0.io.rw_size_i // AXI
+    // TopInterface0 input
+    TopInterface0.io.clock  := clock
+    TopInterface0.io.reset  := reset
+    TopInterface0.io.rw_valid_i     := AXI_ARIBITER0.io.rw_valid_i
+    TopInterface0.io.enw_i          := AXI_ARIBITER0.io.enw_i
+    TopInterface0.io.rw_w_data_i    := AXI_ARIBITER0.io.rw_w_data_i
+    TopInterface0.io.rw_addr_i      := AXI_ARIBITER0.io.rw_addr_i
+    TopInterface0.io.rw_size_i      := AXI_ARIBITER0.io.rw_size_i
 
-    AXIRW0.io.axi_aw_ready_i:= io.master_awready // AXI
-    AXIRW0.io.axi_w_ready_i := io.master_wready // AXI
-    AXIRW0.io.axi_b_valid_i := io.master_bvalid // AXI 
-    AXIRW0.io.axi_b_resp_i  := io.master_bresp // AXI
-    AXIRW0.io.axi_b_id_i    := io.master_bid // AXI
-    AXIRW0.io.axi_b_user_i  := 0.U // AXI
-    AXIRW0.io.axi_ar_ready_i:= io.master_arready // AXI
-    AXIRW0.io.axi_r_valid_i := io.master_rvalid // AXI
-    AXIRW0.io.axi_r_resp_i  := io.master_rresp // AXI
-    AXIRW0.io.axi_r_data_i  := io.master_rdata // AXI
-    AXIRW0.io.axi_r_last_i  := io.master_rlast // AXI
-    AXIRW0.io.axi_r_id_i    := io.master_rid // AXI
-    AXIRW0.io.axi_r_user_i  := 0.U // AXI
+    // TopInterface0.io.ready   := io.ready
+    // TopInterface0.io.r_data_valid   := io.r_data_valid
+    // TopInterface0.io.r_data         := io.r_data
+    TopInterface0.io.ready          := main_memory0.io.ready
+    TopInterface0.io.r_data_valid   := main_memory0.io.r_data_valid
+    TopInterface0.io.r_data         := main_memory0.io.r_data
+
+    // AXIRW0.io.clock         := clock // AXI
+    // AXIRW0.io.reset         := reset // AXI
+    // // AXIRW0.io.rw_addr_i     := ICACHE_CTRL0.io.addr2mem(31, 0) // AXI
+    // // AXIRW0.io.rw_valid_i    := ICACHE_CTRL0.io.valid2mem // AXI
+    // // AXIRW0.io.enw_i         := ICACHE_CTRL0.io.enw2mem // AXI
+    // // AXIRW0.io.rw_w_data_i   := ICACHE_CTRL0.io.data2mem // AXI
+    // // AXIRW0.io.rw_size_i     := ICACHE_CTRL0.io.wmask2mem // AXI
+    // AXIRW0.io.rw_addr_i     := AXI_ARIBITER0.io.rw_addr_i // AXI
+    // AXIRW0.io.rw_valid_i    := AXI_ARIBITER0.io.rw_valid_i // AXI
+    // AXIRW0.io.enw_i         := AXI_ARIBITER0.io.enw_i // AXI
+    // AXIRW0.io.rw_w_data_i   := AXI_ARIBITER0.io.rw_w_data_i // AXI
+    // AXIRW0.io.rw_size_i     := AXI_ARIBITER0.io.rw_size_i // AXI
+
+    // AXIRW0.io.axi_aw_ready_i:= io.master_awready // AXI
+    // AXIRW0.io.axi_w_ready_i := io.master_wready // AXI
+    // AXIRW0.io.axi_b_valid_i := io.master_bvalid // AXI 
+    // AXIRW0.io.axi_b_resp_i  := io.master_bresp // AXI
+    // AXIRW0.io.axi_b_id_i    := io.master_bid // AXI
+    // AXIRW0.io.axi_b_user_i  := 0.U // AXI
+    // AXIRW0.io.axi_ar_ready_i:= io.master_arready // AXI
+    // AXIRW0.io.axi_r_valid_i := io.master_rvalid // AXI
+    // AXIRW0.io.axi_r_resp_i  := io.master_rresp // AXI
+    // AXIRW0.io.axi_r_data_i  := io.master_rdata // AXI
+    // AXIRW0.io.axi_r_last_i  := io.master_rlast // AXI
+    // AXIRW0.io.axi_r_id_i    := io.master_rid // AXI
+    // AXIRW0.io.axi_r_user_i  := 0.U // AXI
 
     IF2ID0.io.enIF2ID := !CTRL0.io.stall_if2id
     IF2ID0.io.flush   := CTRL0.io.flush_if2id
@@ -471,13 +374,13 @@ class RV64Top extends Module
     // DCACHE0.io.sram5_rdata := io.sram5_rdata
     // DCACHE0.io.sram6_rdata := io.sram6_rdata
     // DCACHE0.io.sram7_rdata := io.sram7_rdata
-    MEM_DPI0.io.clock := clock
+    // MEM_DPI0.io.clock := clock
     // MEM_DPI0.io.raddr := Mux(DCACHE_CTRL0.io.uart_dpi_flag, DCACHE_CTRL0.io.addr2mem, 0.U) // DPI-C
     // MEM_DPI0.io.waddr := Mux(DCACHE_CTRL0.io.uart_dpi_flag, DCACHE_CTRL0.io.addr2mem, 0.U) // DPI-C
-    MEM_DPI0.io.raddr := DCACHE_CTRL0.io.addr2mem // DPI-C
-    MEM_DPI0.io.waddr := DCACHE_CTRL0.io.addr2mem // DPI-C
-    MEM_DPI0.io.wdata := DCACHE_CTRL0.io.data2mem // DPI-C
-    MEM_DPI0.io.wmask := DCACHE_CTRL0.io.wmask2mem // DPI-C
+    // MEM_DPI0.io.raddr := DCACHE_CTRL0.io.addr2mem // DPI-C
+    // MEM_DPI0.io.waddr := DCACHE_CTRL0.io.addr2mem // DPI-C
+    // MEM_DPI0.io.wdata := DCACHE_CTRL0.io.data2mem // DPI-C
+    // MEM_DPI0.io.wmask := DCACHE_CTRL0.io.wmask2mem // DPI-C
 
     LOADUNIT0.io.raddr          := EX2MEM0.io.MEMraddr(2, 0)
     // LOADUNIT0.io.rdata_native   := Mux(EX2MEM0.io.MEMraddr === "ha0000048".U, MEM_DPI0.io.rdata, DCACHE_CTRL0.io.data2cpu)
@@ -563,8 +466,10 @@ class RV64Top extends Module
     AXI_ARIBITER0.io.DCache_valid2mem   := DCACHE_CTRL0.io.valid2mem
     AXI_ARIBITER0.io.DCache_enw2mem     := DCACHE_CTRL0.io.enw2mem
 
-    AXI_ARIBITER0.io.rw_ready_o         := AXIRW0.io.rw_ready_o
-    AXI_ARIBITER0.io.data_read_o        := AXIRW0.io.data_read_o
+    // AXI_ARIBITER0.io.rw_ready_o         := AXIRW0.io.rw_ready_o
+    // AXI_ARIBITER0.io.data_read_o        := AXIRW0.io.data_read_o
+    AXI_ARIBITER0.io.rw_ready_o         := TopInterface0.io.rw_ready_o
+    AXI_ARIBITER0.io.data_read_o        := TopInterface0.io.data_read_o
 
     //top input
     io.pc           := MEM2WB0.io.WBpc
@@ -574,47 +479,16 @@ class RV64Top extends Module
     io.mem_wdata    := EX2MEM0.io.MEMwdata
     io.enMEM2WB     := MEM2WB0.io.enMEM2WB
 
-    // SOC AXI-Master
-    io.master_awvalid  := AXIRW0.io.axi_aw_valid_o 
-    io.master_awaddr   := AXIRW0.io.axi_aw_addr_o
-    io.master_awid     := AXIRW0.io.axi_aw_id_o
-    io.master_awlen    := AXIRW0.io.axi_aw_len_o
-    io.master_awsize   := AXIRW0.io.axi_aw_size_o
-    io.master_awburst  := AXIRW0.io.axi_aw_burst_o
+    // io.mode     := TopInterface0.io.mode
+    // io.valid    := TopInterface0.io.valid
+    // io.addr     := TopInterface0.io.addr
+    // io.w_data   := TopInterface0.io.w_data
 
-    io.master_wvalid   := AXIRW0.io.axi_w_valid_o
-    io.master_wdata    := AXIRW0.io.axi_w_data_o
-    io.master_wstrb    := AXIRW0.io.axi_w_strb_o
-    io.master_wlast    := AXIRW0.io.axi_w_last_o
-
-    io.master_bready   := AXIRW0.io.axi_b_ready_o
-
-    io.master_arvalid  := AXIRW0.io.axi_ar_valid_o
-    io.master_araddr   := AXIRW0.io.axi_ar_addr_o
-    io.master_arid     := AXIRW0.io.axi_ar_id_o
-    io.master_arlen    := AXIRW0.io.axi_ar_len_o
-    io.master_arsize   := AXIRW0.io.axi_ar_size_o
-    io.master_arburst  := AXIRW0.io.axi_ar_burst_o
-
-    io.master_rready   := AXIRW0.io.axi_r_ready_o
-
-    // SOC AXI-Slave
-    io.slave_awready    := 0.U
-
-    io.slave_wready     := 0.U
-
-    io.slave_bvalid     := 0.U
-    io.slave_bresp      := 0.U
-    io.slave_bid        := 0.U
-
-    io.slave_arready    := 0.U
-
-    io.slave_rvalid     := 0.U
-    io.slave_rresp      := 0.U
-    io.slave_rdata      := 0.U
-    io.slave_rlast      := 0.U
-    io.slave_rid        := 0.U
-
+    main_memory0.io.clock    := clock
+    main_memory0.io.mode     := TopInterface0.io.mode
+    main_memory0.io.valid    := TopInterface0.io.valid
+    main_memory0.io.addr     := TopInterface0.io.addr
+    main_memory0.io.w_data   := TopInterface0.io.w_data
     // // SRAM
     // io.sram0_addr   := ICACHE0.io.sram0_addr 
     // io.sram0_cen    := ICACHE0.io.sram0_cen  

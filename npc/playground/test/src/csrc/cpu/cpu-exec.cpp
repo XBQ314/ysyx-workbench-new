@@ -15,7 +15,7 @@
 #include <iostream>
 using namespace std;
 
-#define CONFIG_ITRACE 1
+#define CONFIG_ITRACE 0
 #define CONFIG_DIFFTEST 1
 #define CONFIG_WATCHPOINT 0
 
@@ -35,45 +35,45 @@ extern uint64_t NPC_PC;
 bool skip_difftest = false;
 uint64_t skipdiff_pc = 0;
 
-void connect_wire(axi4_ptr <32,64,4> &mem_ptr, Vysyx_040154_RV64Top *top)
-{
-    // connect
-    // mem
-    // aw
-    mem_ptr.awaddr  = &(top->io_master_awaddr);
-    mem_ptr.awburst = &(top->io_master_awburst);
-    mem_ptr.awid    = &(top->io_master_awid);
-    mem_ptr.awlen   = &(top->io_master_awlen);
-    mem_ptr.awready = &(top->io_master_awready);
-    mem_ptr.awsize  = &(top->io_master_awsize);
-    mem_ptr.awvalid = &(top->io_master_awvalid);
-    // w
-    mem_ptr.wdata   = &(top->io_master_wdata);
-    mem_ptr.wlast   = &(top->io_master_wlast);
-    mem_ptr.wready  = &(top->io_master_wready);
-    mem_ptr.wstrb   = &(top->io_master_wstrb);
-    mem_ptr.wvalid  = &(top->io_master_wvalid);
-    // b
-    mem_ptr.bid     = &(top->io_master_bid);
-    mem_ptr.bready  = &(top->io_master_bready);
-    mem_ptr.bresp   = &(top->io_master_bresp);
-    mem_ptr.bvalid  = &(top->io_master_bvalid);
-    // ar
-    mem_ptr.araddr  = &(top->io_master_araddr);
-    mem_ptr.arburst = &(top->io_master_arburst);
-    mem_ptr.arid    = &(top->io_master_arid);
-    mem_ptr.arlen   = &(top->io_master_arlen);
-    mem_ptr.arready = &(top->io_master_arready);
-    mem_ptr.arsize  = &(top->io_master_arsize);
-    mem_ptr.arvalid = &(top->io_master_arvalid);
-    // r
-    mem_ptr.rdata   = &(top->io_master_rdata);
-    mem_ptr.rid     = &(top->io_master_rid);
-    mem_ptr.rlast   = &(top->io_master_rlast);
-    mem_ptr.rready  = &(top->io_master_rready);
-    mem_ptr.rresp   = &(top->io_master_rresp);
-    mem_ptr.rvalid  = &(top->io_master_rvalid);
-}
+// void connect_wire(axi4_ptr <32,64,4> &mem_ptr, Vysyx_040154_RV64Top *top)
+// {
+//     // connect
+//     // mem
+//     // aw
+//     mem_ptr.awaddr  = &(top->io_master_awaddr);
+//     mem_ptr.awburst = &(top->io_master_awburst);
+//     mem_ptr.awid    = &(top->io_master_awid);
+//     mem_ptr.awlen   = &(top->io_master_awlen);
+//     mem_ptr.awready = &(top->io_master_awready);
+//     mem_ptr.awsize  = &(top->io_master_awsize);
+//     mem_ptr.awvalid = &(top->io_master_awvalid);
+//     // w
+//     mem_ptr.wdata   = &(top->io_master_wdata);
+//     mem_ptr.wlast   = &(top->io_master_wlast);
+//     mem_ptr.wready  = &(top->io_master_wready);
+//     mem_ptr.wstrb   = &(top->io_master_wstrb);
+//     mem_ptr.wvalid  = &(top->io_master_wvalid);
+//     // b
+//     mem_ptr.bid     = &(top->io_master_bid);
+//     mem_ptr.bready  = &(top->io_master_bready);
+//     mem_ptr.bresp   = &(top->io_master_bresp);
+//     mem_ptr.bvalid  = &(top->io_master_bvalid);
+//     // ar
+//     mem_ptr.araddr  = &(top->io_master_araddr);
+//     mem_ptr.arburst = &(top->io_master_arburst);
+//     mem_ptr.arid    = &(top->io_master_arid);
+//     mem_ptr.arlen   = &(top->io_master_arlen);
+//     mem_ptr.arready = &(top->io_master_arready);
+//     mem_ptr.arsize  = &(top->io_master_arsize);
+//     mem_ptr.arvalid = &(top->io_master_arvalid);
+//     // r
+//     mem_ptr.rdata   = &(top->io_master_rdata);
+//     mem_ptr.rid     = &(top->io_master_rid);
+//     mem_ptr.rlast   = &(top->io_master_rlast);
+//     mem_ptr.rready  = &(top->io_master_rready);
+//     mem_ptr.rresp   = &(top->io_master_rresp);
+//     mem_ptr.rvalid  = &(top->io_master_rvalid);
+// }
 
 void step_and_dump_wave()
 {
@@ -95,14 +95,14 @@ void step_and_dump_wave()
 
 void single_cycle() 
 {
-    connect_wire(mem_ptr, top);
-    assert(mem_ptr.check());
-    axi4_ref<32, 64, 4> mem_ref(mem_ptr);
+    // connect_wire(mem_ptr, top);
+    // assert(mem_ptr.check());
+    // axi4_ref<32, 64, 4> mem_ref(mem_ptr);
 	top->clock = 0; step_and_dump_wave();
-    mem_sigs.update_input(mem_ref);
+    // mem_sigs.update_input(mem_ref);
 	top->clock = 1; step_and_dump_wave();
-    axi_mem.beat(mem_sigs_ref); // read channel + write channel
-    mem_sigs.update_output(mem_ref);
+    // axi_mem.beat(mem_sigs_ref); // read channel + write channel
+    // mem_sigs.update_output(mem_ref);
 }
 
 void reset(int n)
@@ -232,7 +232,6 @@ void cpu_exec(uint64_t n)
         return;
         default: npc_state.state = NPC_RUNNING;
     }
-
     execute(n);
 
     switch (npc_state.state) 
