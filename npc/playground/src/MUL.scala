@@ -14,6 +14,7 @@ class ysyx_040154_MUL extends BlackBox with HasBlackBoxInline
 
         val multiplicand = Input(UInt(64.W))
         val multipiler = Input(UInt(64.W))
+        val out_take_ready = Input(Bool())
 
         val mul_ready = Output(Bool())
         val out_valid = Output(Bool())
@@ -35,8 +36,9 @@ class ysyx_040154_MUL extends BlackBox with HasBlackBoxInline
 |
 |    input [63:0] multiplicand, //被乘数,就是第一个数
 |    input [63:0] multipiler, //乘数,就是第二个数
+|    input out_take_ready,
 |
-|    output reg mul_ready, //为高表示乘法器准备好，表示可以输入数据
+|    output reg mul_ready, //为高表示乘法器准备好, 表示可以输入数据
 |    output reg out_valid, //为高表示乘法器输出的结果有效
 |
 |    output [63:0] result_hi,
@@ -101,7 +103,8 @@ class ysyx_040154_MUL extends BlackBox with HasBlackBoxInline
 |    end
 |    else if(cur_state == DONE)
 |    begin
-|        nxt_state = IDLE;
+|    if(out_take_ready && out_valid) nxt_state = IDLE;
+|    else nxt_state = DONE;
 |    end
 |    else nxt_state = cur_state;
 |end
@@ -188,6 +191,7 @@ class ysyx_040154_MUL extends BlackBox with HasBlackBoxInline
 |            else done_flag <= 'd0;
 |        end
 |    end
+|    else if(cur_state == DONE) result <= result;
 |end
 |
 |wire [127:0] real_result = result_sign_reg?~result+1'b1:result;

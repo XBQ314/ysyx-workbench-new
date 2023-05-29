@@ -56,7 +56,7 @@ void check_ebreak()
   if(cpu_gpr[10] == 0)
   {
     PRINT_FONT_GRE
-    printf("HIT GOOD TRAP\n");
+    printf("HIT GOOD TRAP, Total Cycles:%ld\n", inst_num/2);
     PRINT_ATTR_REC
   }
   else

@@ -44,7 +44,7 @@ class TopInterface extends BlackBox with HasBlackBoxInline
 |
 |// CPU顶层输出信号
 |output mode, // mode=0 -> read; mode -> 1 write;
-|output reg valid,
+|output valid,
 |output [63:0] addr,
 |output [7:0] w_data,
 |
@@ -161,36 +161,38 @@ class TopInterface extends BlackBox with HasBlackBoxInline
 |    endcase
 |end
 |
-|always@*
-|begin
-|    case (cur_state)
-|    IDLE:
-|    begin
-|        if(rw_valid_i) valid = 'd1;
-|        else valid = 'd0;
-|    end
-|    READ:
-|    begin
-|        if (!rw_valid_i || (((cur_tran_num == 'd7 && rw_size_i == 8'hff) || (rw_size_i == 8'h01)) && ready)) valid = 'd0;
-|        else valid = 'd1;
-|    end
-|    WRIT: 
-|    begin
-|        if (!rw_valid_i || (((cur_tran_num == 'd7 && rw_size_i == 8'hff) || (rw_size_i == 8'h01)) && ready)) valid = 'd0;
-|        else valid = 'd1;
-|    end
-|    default:
-|    begin
-|        valid = 'd0;
-|    end
-|    endcase
-|end
+|// always@*
+|// begin
+|//     case (cur_state)
+|//     IDLE:
+|//     begin
+|//         if(rw_valid_i && rw_size_i == 8'h01) valid = 'd1;
+|//         else valid = 'd0;
+|//     end
+|//     READ:
+|//     begin
+|//         // if (!rw_valid_i || (((cur_tran_num == 'd7 && rw_size_i == 8'hff) || (rw_size_i == 8'h01)) && ready)) valid = 'd0;
+|//         // else valid = 'd1;
+|//         valid = 'd1;
+|//     end
+|//     WRIT: 
+|//     begin
+|//         // if (!rw_valid_i || (((cur_tran_num == 'd7 && rw_size_i == 8'hff) || (rw_size_i == 8'h01)) && ready)) valid = 'd0;
+|//         // else valid = 'd1;
+|//         valid = 'd1;
+|//     end
+|//     default:
+|//     begin
+|//         valid = 'd0;
+|//     end
+|//     endcase
+|// end
 |
 |assign data_read_o = data_read_o_reg;
 |assign rw_ready_o = rw_ready_o_reg;
 |
 |assign mode = enw_i;
-|// assign valid = (cur_state == READ)||(cur_state == WRIT);
+|assign valid = (cur_state == READ)||(cur_state == WRIT);
 |assign addr = {32'd0, rw_addr_i[31:3], cur_tran_num};
 |assign w_data = (cur_tran_num==3'd0)?rw_w_data_i[7 :0]:
 |                (cur_tran_num==3'd1)?rw_w_data_i[15:8]:

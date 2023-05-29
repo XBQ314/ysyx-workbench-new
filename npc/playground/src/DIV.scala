@@ -14,6 +14,7 @@ class ysyx_040154_DIV extends BlackBox with HasBlackBoxInline
 
         val dividend = Input(UInt(64.W))
         val divisor = Input(UInt(64.W))
+        val out_take_ready = Input(Bool())
 
         val div_ready = Output(Bool())
         val out_valid = Output(Bool())
@@ -35,6 +36,7 @@ class ysyx_040154_DIV extends BlackBox with HasBlackBoxInline
 |    input div_valid, //为高表示输入的数据有效,如果没有新的除法输入,在除法被接受的下一个周期要置低
 |    input div_signed, //表示是不是有符号除法,为高表示是有符号除法
 |    input flush, //为高表示要取消除法(修改一下除法器状态就行)
+|    input out_take_ready,
 |    
 |    output reg div_ready, //为高表示除法器空闲,可以输入数据
 |    output reg out_valid, //为高表示除法器输出了有效结果
@@ -87,7 +89,8 @@ class ysyx_040154_DIV extends BlackBox with HasBlackBoxInline
 |    end
 |    else if(cur_state == DONE)
 |    begin
-|        nxt_state = IDLE;
+|        if(out_take_ready && out_valid)nxt_state = IDLE;
+|        else nxt_state = DONE;
 |    end
 |    else nxt_state = cur_state;
 |end

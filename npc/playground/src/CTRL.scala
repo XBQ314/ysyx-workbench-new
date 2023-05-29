@@ -113,9 +113,9 @@ class CTRL extends Module
         io.stall_mem2wb := true.B
     }
 
-    when(io.ifu_stall_req)
+    when(io.ifu_stall_req && !(io.loadflag_ex && (io.feedflag_ex2id_rs1 || io.feedflag_ex2id_rs2))) // 当EX阶段运行的访存指令需要前馈给ID时不能暂停所有流水线, 不然会卡住
     {
-        io.stall_ifu    := false.B
+        // io.stall_ifu    := false.B
         io.stall_if2id  := true.B
         io.stall_id2ex  := true.B
         io.stall_ex2mem := true.B

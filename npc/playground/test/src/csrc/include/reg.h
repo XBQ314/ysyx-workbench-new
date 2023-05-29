@@ -9,7 +9,7 @@ struct npc_reg_struct
   uint64_t mstatus, mie, mtvec, mepc, mcause, mip;
 };
 extern struct npc_reg_struct npc_regs;
-
+extern long inst_num;
 void update_npc_regs();
 void display_reg();
 void display_csr();

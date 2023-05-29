@@ -118,8 +118,20 @@ extern "C" void pmem_read(long long addr, uint8_t *r_data) // Load
 {
 // 总是读取地址为`raddr & ~0x7ull`的8字节返回给`rdata`
     assert(addr >= 0x80000000);
-    *r_data = *(uint8_t *)(addr + mem - 0x80000000);
     // printf("pmem_read:%llx, %2x\n", addr, *r_data);
+    if(addr >= 0x80000000 && addr <= 0x88000000)*r_data = *(uint8_t *)(addr + mem - 0x80000000);
+    else if(addr == 0xa0000048)
+    {
+        // long long tmp = gettime();
+        mmio_flag = true;
+        *r_data = gettime();
+        // printf("rdata:%lld\n", &rdata);
+    }
+    else
+    {
+        printf("pmem_read:%llx, %2x\n", addr, *r_data);
+        // assert(0);
+    }
 }
 
 // extern "C" void pmem_write(long long waddr, long long wdata, uint8_t wmask) // Store
@@ -191,7 +203,11 @@ extern "C" void pmem_write(long long addr, uint8_t w_data)
         assert(tmp);
         printf("%c", *tmp);
     }
-    else if(addr >= 0x80000000 && addr <= 0x88000000) *(uint8_t   *)(addr + mem - 0x80000000) = w_data;
+    else if(addr >= 0x80000000 && addr <= 0x88000000)
+    {
+        *(uint8_t   *)(addr + mem - 0x80000000) = w_data;
+        // if(addr == 0x81d7eed8) printf("pmem_write:%llx, %2x\n", addr, w_data);
+    }
     else assert(0);
 }
 

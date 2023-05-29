@@ -44,6 +44,7 @@ class CACHE_CTRL extends Module
     val CACHE_READ = "b0010".U
     val ALLOCATE_L64 = "b0011".U
     val ALLOCATE_H64 = "b0100".U
+    val WAIT = "b0101".U
     val uncached_flag = Wire(Bool())
     uncached_flag := (io.cpu_addr < "h80000000".U(64.W))
     val uncached_memdata = RegInit(0.U(64.W))
@@ -110,7 +111,9 @@ class CACHE_CTRL extends Module
             // cache命中并且valid为1
             when((io.cache_tag === io.cpu_addr(63, 12)) && (io.cache_valid === 1.U))
             {
-                nxt_state := CACHE_READ
+                // nxt_state := CACHE_READ
+                nxt_state := IDLE
+                io.ready2cpu := true.B
             }.otherwise // miss
             {
                 io.tagenw2cache := true.B
@@ -159,11 +162,14 @@ class CACHE_CTRL extends Module
         {
             io.enw2cache := true.B
             io.wdata2cache := Cat(io.mem_data, wdata2cache_tmp)
-            nxt_state := COMPARE_TAG
+            nxt_state := WAIT
         }.otherwise
         {
             nxt_state := ALLOCATE_H64
         }
+    }.elsewhen(cur_state === WAIT)
+    {
+        nxt_state := CACHE_READ
     }
 }
 

@@ -61,16 +61,13 @@ class main_memory extends BlackBox with HasBlackBoxInline
 |    assign r_data_valid = valid & (~mode);
 |    // assign r_data = {8{read_addr_is_valid & valid}} & mem[addr[15:0]];
 |
-|    always@*
+|    always@(*)
 |    begin
-|        if(read_addr_is_valid & valid)
+|        if(valid && ~mode)
 |        begin
 |            pmem_read(addr, r_data);
 |        end
-|        else 
-|        begin
-|            r_data = 0;
-|        end
+|        else r_data=0;
 |    end
 |    // write memoey
 |    // always @(posedge clock) begin

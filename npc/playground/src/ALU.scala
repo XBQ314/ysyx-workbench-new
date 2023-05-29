@@ -111,6 +111,7 @@ class Muldiv extends Module
         val mul_outh = Input(UInt(1.W))
         val div_flag = Input(Bool())
         val div_signed = Input(Bool())
+        val out_take_ready = Input(Bool())
         val out_valid = Output(Bool())
         val out = Output(UInt(64.W))
     })
@@ -127,6 +128,7 @@ class Muldiv extends Module
     val BUSY_MUL = "b010".U
     val BUSY_DIV = "b011".U
     val BUSY_MOD = "b100".U
+    val DONE = "b110".U
 
     nxt_state := IDLE
     mul_valid := false.B
@@ -137,6 +139,7 @@ class Muldiv extends Module
     MUL0.io.reset := io.reset
 
     MUL0.io.mul_valid := mul_valid
+    MUL0.io.out_take_ready := io.out_take_ready
     MUL0.io.flush := false.B
     // MUL0.io.mulw := false.B
     MUL0.io.mul_signed := io.mul_signed
@@ -148,6 +151,7 @@ class Muldiv extends Module
     DIV0.io.reset := io.reset
 
     DIV0.io.div_valid := div_valid
+    DIV0.io.out_take_ready := io.out_take_ready
     DIV0.io.flush := false.B
     // DIV0.io.divw := false.B
     DIV0.io.div_signed := io.div_signed
@@ -179,8 +183,12 @@ class Muldiv extends Module
     {
         mul_valid := false.B
         div_valid := false.B
-        when(MUL0.io.out_valid || DIV0.io.out_valid){nxt_state := IDLE}
+        when(MUL0.io.out_valid || DIV0.io.out_valid){nxt_state := DONE}
         .otherwise{nxt_state := BUSY_MUL}
+    }.elsewhen(cur_state === DONE)
+    {
+        when((DIV0.io.out_take_ready && DIV0.io.out_valid)||(MUL0.io.out_take_ready && MUL0.io.out_valid)){nxt_state := IDLE}
+        .otherwise{nxt_state := DONE}
     }
 
     io.out := 0.U
@@ -270,6 +278,7 @@ class ALU extends Module
         val mul_outh = Input(UInt(1.W))
         val mul_flag = Input(Bool())
         val Btype_flag = Input(Bool())
+        val out_take_ready = Input(Bool())
         val pc_next = Output(UInt(64.W))
         val jump_flag = Output(Bool()) // 负责探测B型造成的跳转
         val flush_req = Output(Bool())
@@ -324,6 +333,7 @@ class ALU extends Module
     calcuMD.io.mul_flag := io.mul_flag
     calcuMD.io.mul_signed := io.mul_signed
     calcuMD.io.mul_outh := io.mul_outh
+    calcuMD.io.out_take_ready := io.out_take_ready
     io.mulstall_req := io.mul_flag && (!calcuMD.io.out_valid)
     io.divstall_req := io.div_flag && (!calcuMD.io.out_valid)
 

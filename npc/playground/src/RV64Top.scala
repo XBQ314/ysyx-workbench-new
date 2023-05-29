@@ -281,6 +281,7 @@ class RV64Top extends Module
     ALU0.io.mul_signed   := ID2EX0.io.EXmul_signed
     ALU0.io.mul_outh     := ID2EX0.io.EXmul_outh
     ALU0.io.Btype_flag   := ID2EX0.io.EXBtype_flag
+    ALU0.io.out_take_ready := !CTRL0.io.stall_id2ex
 
     RegisterFiles0.io.clock     := clock
     RegisterFiles0.io.reset     := reset
