@@ -362,7 +362,8 @@ class RV64Top extends Module
     MEMCTRL0.io.pc      := EX2MEM0.io.MEMpc
     MEMCTRL0.io.addr    := EX2MEM0.io.MEMraddr  
 
-    DCACHE0.io.CLK      := clock
+    DCACHE0.io.clk      := clock
+    DCACHE0.io.reset    := reset
     DCACHE0.io.index    := DCACHE_CTRL0.io.index2cache
     DCACHE0.io.enw      := DCACHE_CTRL0.io.enw2cache
     DCACHE0.io.tag_enw  := DCACHE_CTRL0.io.tagenw2cache

@@ -76,7 +76,8 @@ class DCACHE_CTRL extends Module
     val CLEANidx = RegInit(0.U(8.W))
     CLEANidx := CLEANidx
 
-    uncached_flag := ((io.cpu_addr === "ha0000048".U(64.W) || io.cpu_addr === "ha00003f8".U(64.W)))
+    // uncached_flag := ((io.cpu_addr === "ha0000048".U(64.W) || io.cpu_addr === "ha00003f8".U(64.W)))
+    uncached_flag := io.cpu_addr === "h1000".U(64.W)
     clint_flag      := ((io.cpu_addr >= "h02000000".U(64.W) && io.cpu_addr <= "h0200Bfff".U(64.W)))
     uart_flag       := ((io.cpu_addr >= "h10000000".U(64.W) && io.cpu_addr <= "h10000fff".U(64.W)))
     spi_flag        := ((io.cpu_addr >= "h10001000".U(64.W) && io.cpu_addr <= "h10001fff".U(64.W)))

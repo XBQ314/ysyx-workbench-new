@@ -114,18 +114,18 @@ class ysyx_040154_CSR extends BlackBox with HasBlackBoxInline
 |reg [63:0] mcause ;
 |reg [63:0] mip    ;
 |
-|import "DPI-C" function void read_mstatus(input longint a);
-|import "DPI-C" function void read_mtvec(input longint a);
-|import "DPI-C" function void read_mepc(input longint a);
-|import "DPI-C" function void read_mcause(input longint a);
-|
-|always@(*)
-|begin
-|    read_mstatus(mstatus);
-|    read_mtvec(mtvec);
-|    read_mepc(mepc);
-|    read_mcause(mcause);
-|end
+|//import "DPI-C" function void read_mstatus(input longint a);
+|//import "DPI-C" function void read_mtvec(input longint a);
+|//import "DPI-C" function void read_mepc(input longint a);
+|//import "DPI-C" function void read_mcause(input longint a);
+|//
+|//always@(*)
+|//begin
+|//    read_mstatus(mstatus);
+|//    read_mtvec(mtvec);
+|//    read_mepc(mepc);
+|//    read_mcause(mcause);
+|//end
 |
 |always@(posedge clock)
 |begin

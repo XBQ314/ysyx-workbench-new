@@ -195,6 +195,7 @@ extern "C" void pmem_write(long long addr, uint8_t w_data)
     // assert(addr > 0x80000000);
     // printf("pmem_write:%llx, %2x\n", addr, w_data);
     if(addr == 0xa00003f8) // 串口device
+    // if(addr == 0x1000) // 串口device
     {
         // printf("111111111111111111111111111111111111111111111111111\n");
         mmio_flag = true;
