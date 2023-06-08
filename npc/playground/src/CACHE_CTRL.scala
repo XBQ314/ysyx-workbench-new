@@ -93,13 +93,28 @@ class CACHE_CTRL extends Module
     io.valid2cache := 0.U
     io.dirty2cache := 0.U
     io.tag2cache := 0.U
-
+    val pre_index = RegInit(("h00".U(8.W)))
     // FSM
     when(cur_state === IDLE)
     {
         when(io.cpu_valid)
         {
-            nxt_state := COMPARE_TAG
+            // cache命中并且valid为1, 直接读出来，不用浪费一个周期
+            when((!uncached_flag) && (io.cache_tag === io.cpu_addr(63, 12)) && (io.cache_valid === 1.U))
+            {
+                pre_index := io.index2cache // 记录一下当前cache读出的数据是哪个index的
+                when(pre_index === io.index2cache) // 如果当前的index和之前的index不符合，则需要多一个周期才能读出inst，因此跳转compare
+                {
+                    nxt_state := IDLE
+                    io.ready2cpu := true.B
+                }.otherwise
+                {
+                    nxt_state := COMPARE_TAG
+                }
+            }.otherwise
+            {
+                nxt_state := COMPARE_TAG
+            }
         }.otherwise
         {
             nxt_state := IDLE
@@ -111,7 +126,6 @@ class CACHE_CTRL extends Module
             // cache命中并且valid为1
             when((io.cache_tag === io.cpu_addr(63, 12)) && (io.cache_valid === 1.U))
             {
-                // nxt_state := CACHE_READ
                 nxt_state := IDLE
                 io.ready2cpu := true.B
             }.otherwise // miss
@@ -140,6 +154,7 @@ class CACHE_CTRL extends Module
         }
     }.elsewhen(cur_state === CACHE_READ) // 单端口RAM不支持同时读写,所以需要加一个单独的READ状态
     {
+        pre_index := io.index2cache // 记录一下当前cache读出的数据是哪个index的
         io.ready2cpu := true.B
         nxt_state := IDLE
     }.elsewhen(cur_state === ALLOCATE_L64)
